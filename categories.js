@@ -1,152 +1,179 @@
 (function () {
     'use strict';
 
-    var HomeCleaner = {
-        // Список категорій, які ми хочемо контролювати поіменно
-        blackList: [
-            "Зараз дивляться",
-            "Сьогодні у тренді",
-            "У тренді за тиждень",
-            "Дивіться у кінозалах",
-            "Популярні фільми",
-            "Популярні серіали",
-            "Топ фільми",
-            "Топ серіали"
-        ],
+    /**
+     * Список категорій для окремого контролю
+     * Кожна категорія матиме свій пункт в меню "Канали"
+     */
+    var CATEGORIES = [
+        "Зараз дивляться",
+        "Сьогодні у тренді",
+        "У тренді за тиждень",
+        "Дивіться у кінозалах",
+        "Популярні фільми",
+        "Популярні серіали",
+        "Топ фільми",
+        "Топ серіали"
+    ];
+
+    /**
+     * Системні блоки, які не треба приховувати
+     */
+    var SAFE_TITLES = ["Продовжити перегляд", "Trakt UpNext", "Меню", "Закладки"];
+
+    /**
+     * Генерує безпечний ключ для зберігання налаштувань
+     */
+    function getCategoryKey(title) {
+        return 'home_hide_' + btoa(unescape(encodeURIComponent(title))).replace(/[^a-zA-Z0-9]/g, '');
+    }
+
+    /**
+     * Перевіряє, чи є категорія в списку контрольованих
+     */
+    function isControlledCategory(title) {
+        return CATEGORIES.indexOf(title) !== -1;
+    }
+
+    /**
+     * Перевіряє, чи є блок системним (безпечним)
+     */
+    function isSafeBlock(title) {
+        return SAFE_TITLES.some(function(t) { 
+            return title.indexOf(t) !== -1; 
+        });
+    }
+
+    /**
+     * Обробляє один рядок контенту
+     */
+    function processRow($node, title) {
+        var hide = false;
+
+        if (isControlledCategory(title)) {
+            // Це одна з контрольованих категорій
+            var key = getCategoryKey(title);
+            hide = Lampa.Storage.get(key, false);
+        } else if (!isSafeBlock(title)) {
+            // Це рекомендація (7 блоків) - перевіряємо загальне налаштування
+            hide = Lampa.Storage.get('home_hide_recommendations', false);
+        }
+
+        // Застосовуємо видимість
+        if (hide) {
+            if ($node.css('display') !== 'none') $node.hide();
+        } else {
+            if ($node.css('display') === 'none') $node.show();
+        }
+    }
+
+    /**
+     * Очищає головний екран від прихованих категорій
+     */
+    function cleanMainScreen($activity) {
+        var content = $activity.find('.scroll__body');
         
-        // Ключ для "всіх інших" блоків
-        keyRecommendations: 'other_recommendations',
+        // Якщо не знайшли .scroll__body, шукаємо ширше (на випадок змін)
+        if (!content.length) {
+            content = $activity.find('.scroll__content > div');
+        }
 
-        init: function () {
-            // 1. Реєструємо налаштування в меню "Канали"
-            this.registerSettings();
+        if (!content.length) return;
 
-            // 2. Слідкуємо за головним екраном
-            Lampa.Listener.follow('activity', function (e) {
-                if (e.type == 'main') {
-                    // Використовуємо $() для перетворення DOM-елемента в jQuery
-                    HomeCleaner.clean($(e.object.activity));
-                }
-            });
+        // Шукаємо всі рядки контенту
+        var rows = content.find('.items-line');
 
-            // Якщо плагін завантажився, а ми вже на головній
-            var active = Lampa.Activity.active();
-            if (active && active.component === 'main') {
-                HomeCleaner.clean($(active.activity));
+        rows.each(function () {
+            var $node = $(this);
+            var titleEl = $node.find('.items-line__title');
+            var title = titleEl.text().trim();
+
+            if (title) {
+                processRow($node, title);
             }
-        },
+        });
+    }
 
-        clean: function ($activity) {
-            // Згідно з твоїми скріншотами, структура: scroll__body -> items-line
-            var content = $activity.find('.scroll__body');
+    /**
+     * Оновлює головний екран після зміни налаштувань
+     */
+    function triggerUpdate() {
+        var active = Lampa.Activity.active();
+        if (active && active.component === 'main') {
+            cleanMainScreen($(active.activity));
+        }
+    }
+
+    /**
+     * Реєструє налаштування для кожної категорії
+     */
+    function registerCategorySettings() {
+        CATEGORIES.forEach(function (title) {
+            var key = getCategoryKey(title);
             
-            // Якщо не знайшли .scroll__body, шукаємо ширше (на випадок змін)
-            if (!content.length) content = $activity.find('.scroll__content > div');
-
-            if (!content.length) return;
-
-            // Шукаємо всі рядки контенту
-            var rows = content.find('.items-line');
-
-            rows.each(function () {
-                var $node = $(this);
-                
-                // Отримуємо заголовок
-                var titleEl = $node.find('.items-line__title');
-                
-                // .text() витягне текст навіть якщо там є іконки (як на скріншоті з вогником)
-                var title = titleEl.text().trim(); 
-
-                if (title) {
-                    HomeCleaner.processRow($node, title);
-                }
-            });
-        },
-
-        processRow: function ($node, title) {
-            var isSpecificCategory = this.blackList.indexOf(title) !== -1;
-            var hide = false;
-
-            if (isSpecificCategory) {
-                // Це одна з 8 конкретних категорій
-                // Генеруємо ключ налаштування
-                var key = 'hide_cat_' + btoa(unescape(encodeURIComponent(title))).replace(/[^a-zA-Z0-9]/g, '');
-                // Отримуємо налаштування (true = приховувати)
-                hide = Lampa.Storage.get(key, false);
-            } else {
-                // Це щось інше (рекомендації або системні)
-                
-                // Перевіряємо, чи це не системні блоки, які не треба чіпати
-                var safeTitles = ["Продовжити перегляд", "Trakt UpNext", "Меню", "Закладки"];
-                var isSafe = safeTitles.some(function(t) { return title.indexOf(t) !== -1; });
-
-                if (!isSafe) {
-                    // Вважаємо це "Рекомендацією" (ті самі 7 блоків)
-                    hide = Lampa.Storage.get(this.keyRecommendations, false);
-                    
-                    // Для дебагу (можна потім прибрати)
-                    // console.log('[HomeCleaner] Found generic block:', title, 'Hidden:', hide);
-                }
-            }
-
-            // Застосовуємо видимість
-            if (hide) {
-                if ($node.css('display') !== 'none') $node.hide();
-            } else {
-                if ($node.css('display') === 'none') $node.show();
-            }
-        },
-
-        registerSettings: function () {
-            // Додаємо параметр для кожної конкретної категорії
-            this.blackList.forEach(function (title) {
-                var safeKey = 'hide_cat_' + btoa(unescape(encodeURIComponent(title))).replace(/[^a-zA-Z0-9]/g, '');
-                
-                Lampa.SettingsApi.addParam({
-                    component: 'home', // Меню "Канали"
-                    param: {
-                        name: safeKey,
-                        type: 'trigger',
-                        default: false
-                    },
-                    field: {
-                        name: title,
-                        description: 'Приховати цю категорію'
-                    },
-                    onChange: function (value) {
-                        // Пересканувати, якщо ми на головній
-                        HomeCleaner.triggerUpdate();
-                    }
-                });
-            });
-
-            // Додаємо ОДИН загальний параметр для всіх інших рекомендацій
             Lampa.SettingsApi.addParam({
-                component: 'home',
+                component: 'home', // Меню "Канали"
                 param: {
-                    name: HomeCleaner.keyRecommendations,
+                    name: key,
                     type: 'trigger',
                     default: false
                 },
                 field: {
-                    name: 'Інші рекомендації',
-                    description: 'Приховати всі додаткові блоки рекомендацій (7 блоків)'
+                    name: title,
+                    description: 'Приховати цю категорію'
                 },
                 onChange: function (value) {
-                    HomeCleaner.triggerUpdate();
+                    triggerUpdate();
                 }
             });
-        },
+        });
+    }
 
-        triggerUpdate: function() {
-            var active = Lampa.Activity.active();
-            if (active && active.component === 'main') {
-                HomeCleaner.clean($(active.activity));
+    /**
+     * Реєструє налаштування для рекомендацій
+     */
+    function registerRecommendationsSetting() {
+        Lampa.SettingsApi.addParam({
+            component: 'home',
+            param: {
+                name: 'home_hide_recommendations',
+                type: 'trigger',
+                default: false
+            },
+            field: {
+                name: 'Рекомендації',
+                description: 'Приховати всі додаткові блоки рекомендацій (7 блоків)'
+            },
+            onChange: function (value) {
+                triggerUpdate();
             }
-        }
-    };
+        });
+    }
 
+    /**
+     * Ініціалізація плагіна
+     */
+    function init() {
+        // 1. Реєструємо налаштування в меню "Канали"
+        registerCategorySettings();
+        registerRecommendationsSetting();
+
+        // 2. Слідкуємо за головним екраном
+        Lampa.Listener.follow('activity', function (e) {
+            if (e.type == 'main') {
+                cleanMainScreen($(e.object.activity));
+            }
+        });
+
+        // Якщо плагін завантажився, а ми вже на головній
+        var active = Lampa.Activity.active();
+        if (active && active.component === 'main') {
+            cleanMainScreen($(active.activity));
+        }
+    }
+
+    // Запускаємо при завантаженні
     if (window.Lampa) {
-        HomeCleaner.init();
+        init();
     }
 })();
