@@ -1913,8 +1913,7 @@ else if (element.url) {
       Lampa.Template.add('lampac_prestige_folder', "<div class=\"online-prestige online-prestige--folder selector\">\n            <div class=\"online-prestige__folder\">\n                <svg viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"></rect>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"></path>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"></rect>\n                </svg>\n            </div>\n            <div class=\"online-prestige__body\">\n                <div class=\"online-prestige__head\">\n                    <div class=\"online-prestige__title\">{title}</div>\n                    <div class=\"online-prestige__time\">{time}</div>\n                </div>\n\n                <div class=\"online-prestige__footer\">\n                    <div class=\"online-prestige__info\">{info}</div>\n                </div>\n            </div>\n        </div>");
       Lampa.Template.add('lampac_prestige_watched', "<div class=\"online-prestige online-prestige-watched selector\">\n            <div class=\"online-prestige-watched__icon\">\n                <svg width=\"21\" height=\"21\" viewBox=\"0 0 21 21\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <circle cx=\"10.5\" cy=\"10.5\" r=\"9\" stroke=\"currentColor\" stroke-width=\"3\"/>\n                    <path d=\"M14.8477 10.5628L8.20312 14.399L8.20313 6.72656L14.8477 10.5628Z\" fill=\"currentColor\"/>\n                </svg>\n            </div>\n            <div class=\"online-prestige-watched__body\">\n                \n            </div>\n        </div>");
     }
-    var animatedImagesIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4v16h16V4H4zm2 2h4v4H6V6zm6 0h4v4h-4V6zm6 0h4v4h-4V6zM6 14h4v4H6v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>';
-    var button = "<div class=\"full-start__button selector view--online_wtch lampac--button\" data-subtitle=\"".concat(manifst.name, " ").concat(manifst.version, "\">\n         ".concat(animatedImagesIcon, "\n    </div>");
+    var button = "<div class=\"full-start__button selector view--online_wtch lampac--button\" data-subtitle=\"".concat(manifst.name, " ").concat(manifst.version, "\">\n         <span>Дивитись</span>\n    </div>");
     Lampa.Component.add('wtch_online', component); //то же самое
     resetTemplates();
 
@@ -1946,7 +1945,7 @@ else if (element.url) {
     Lampa.Listener.follow('full', function(e) {
       if (e.type == 'complite') {
         setTimeout(function(){
-                $(".view--online_wtch", Lampa.Activity.active().activity.render()).empty().append('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4v16h16V4H4zm2 2h4v4H6V6zm6 0h4v4h-4V6zm6 0h4v4h-4V6zM6 14h4v4H6v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>');
+                $(".view--online_wtch", Lampa.Activity.active().activity.render()).empty().append('Дивитись');
         }, 5);
         addButton({
           render: e.object.activity.render().find('.button--play'),
