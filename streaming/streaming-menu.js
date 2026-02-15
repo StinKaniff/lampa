@@ -100,14 +100,6 @@
                 { title: 'Блокбастери Paramount', url: 'discover/movie', params: { with_companies: '4', sort_by: 'revenue.desc' } },
                 { title: 'Всесвіт Йеллоустоун', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc' } }
             ]
-        },
-        syfy: {
-            title: 'Syfy',
-            provider_ids: [], // немає watch provider для UA — показуємо без фільтра
-            categories: [
-                { title: 'Хіти Syfy', url: 'discover/tv', params: { with_networks: '77', sort_by: 'popularity.desc' } },
-                { title: 'Наукова фантастика', url: 'discover/tv', params: { with_networks: '77', with_genres: '10765', sort_by: 'vote_average.desc' } }
-            ]
         }
     };
 
@@ -125,8 +117,7 @@
         amazon: ICON_PRIME,
         disney: ICON_DISNEY,
         hulu: ICON_NETFLIX,
-        paramount: ICON_PARAMOUNT,
-        syfy: ICON_NETFLIX
+        paramount: ICON_PARAMOUNT
     };
 
     var AFTERPLAY_STORAGE_PREFIX = 'afterplay_show_';
