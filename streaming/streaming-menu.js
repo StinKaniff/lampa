@@ -21,11 +21,12 @@
         };
     }
 
-    // TMDB watch provider ID для фільтра «доступно на цьому стрімінгу» (регіон UA)
+    // Фільтр для «Продовжити перегляд» і «Рекомендації» — окремо для кожного сервісу.
+    // type: 'provider' — фільтр за watch_providers (доступно на стрімінгу в UA), type: 'network' — за TV-мережею.
     var SERVICE_CONFIGS = {
         netflix: {
             title: 'Netflix',
-            provider_ids: [8],
+            filter: { type: 'provider', ids: [8] },
             categories: [
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -40,7 +41,7 @@
         },
         apple: {
             title: 'Apple TV+',
-            provider_ids: [350],
+            filter: { type: 'provider', ids: [350] },
             categories: [
                 catNewMoviesProvider(350),
                 catNewTvProvider(350),
@@ -53,8 +54,7 @@
         },
         hbo: {
             title: 'HBO',
-            provider_ids: [],
-            network_ids: [49, 3186], // HBO, HBO Max — фільтр серіалів за мережею (релевантний контент)
+            filter: { type: 'network', ids: [49, 3186] }, // HBO, HBO Max
             categories: [
                 { title: 'Нові серіали HBO/Max', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'HBO: Головні хіти', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc' } },
@@ -65,7 +65,7 @@
         },
         amazon: {
             title: 'Prime Video',
-            provider_ids: [119],
+            filter: { type: 'provider', ids: [119] },
             categories: [
                 { title: 'В тренді на Prime Video', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc' } },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '119', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -76,7 +76,7 @@
         },
         disney: {
             title: 'Disney+',
-            provider_ids: [337],
+            filter: { type: 'provider', ids: [337] },
             categories: [
                 catNewMoviesProvider(337, 'Нові фільми на Disney+'),
                 catNewTvProvider(337, 'Нові серіали на Disney+'),
@@ -88,7 +88,7 @@
         },
         hulu: {
             title: 'Hulu',
-            provider_ids: [453],
+            filter: { type: 'provider', ids: [453] },
             categories: [
                 { title: 'Hulu Originals: У тренді', url: 'discover/tv', params: { with_networks: '453', sort_by: 'popularity.desc' } },
                 { title: 'Драми та трилери', url: 'discover/tv', params: { with_networks: '453', with_genres: '18,9648', sort_by: 'vote_average.desc' } },
@@ -97,7 +97,7 @@
         },
         paramount: {
             title: 'Paramount+',
-            provider_ids: [531],
+            filter: { type: 'provider', ids: [531] },
             categories: [
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
                 { title: 'Блокбастери Paramount', url: 'discover/movie', params: { with_companies: '4', sort_by: 'revenue.desc' } },
@@ -106,8 +106,7 @@
         },
         origin: {
             title: 'National Geographic',
-            provider_ids: [],
-            network_ids: [43, 1043], // National Geographic, Nat Geo Wild
+            filter: { type: 'network', ids: [43, 1043] }, // National Geographic, Nat Geo Wild
             categories: [
                 { title: 'Новинки', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'first_air_date.desc', 'vote_count.gte': '5' } },
                 { title: 'Космос', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } },
@@ -297,11 +296,15 @@
     }
 
     function filterCardsForService(cards, config, done) {
-        var networkIds = config.network_ids || [];
-        if (networkIds.length > 0) {
-            filterCardsByTvNetwork(cards, networkIds, done);
+        var filter = config.filter;
+        if (!filter || !filter.ids || !filter.ids.length) {
+            done(cards);
+            return;
+        }
+        if (filter.type === 'network') {
+            filterCardsByTvNetwork(cards, filter.ids, done);
         } else {
-            filterCardsByProvider(cards, config.provider_ids || [], done);
+            filterCardsByProvider(cards, filter.ids, done);
         }
     }
 
