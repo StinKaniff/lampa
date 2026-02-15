@@ -2,7 +2,7 @@
     'use strict';
 
     /**
-     * Стрімінги з категоріями (за зразком studios.js by Syvyj).
+     * Стрімінги з категоріями.
      * Кожен сервіс — окремі рядки: нові фільми, нові серіали, в тренді тощо.
      */
 
@@ -33,7 +33,6 @@
                 { title: 'Екшн та блокбастери', url: 'discover/movie', params: { with_companies: '213', with_genres: '28,12', sort_by: 'popularity.desc' } },
                 { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
                 { title: 'Кримінальні драми', url: 'discover/tv', params: { with_networks: '213', with_genres: '80', sort_by: 'popularity.desc' } },
-                { title: 'K-Dramas', url: 'discover/tv', params: { with_networks: '213', with_original_language: 'ko', sort_by: 'popularity.desc' } },
                 { title: 'Вибір критиків', url: 'discover/movie', params: { with_companies: '213', 'vote_average.gte': '7.5', 'vote_count.gte': '300', sort_by: 'vote_average.desc' } }
             ]
         },
@@ -138,6 +137,7 @@
     Lampa.Lang.add({
         streaming_menu_title: { ru: 'Стриминги', en: 'Streaming', uk: 'Стрімінги' },
         streaming_menu_panel_title: { ru: 'Выбор стриминговых сервисов', en: 'Choose streaming services', uk: 'Вибір стрімінгових сервісів' },
+        sqr_streaming_chooser_title: { ru: 'Вибір стримингов', en: 'Choose streamings', uk: 'Вибір стримінгів' },
         streaming_continue: { ru: 'Продолжить просмотр', en: 'Continue watching', uk: 'Продовжити перегляд' },
         streaming_recommend: { ru: 'Рекомендации для вас', en: 'Recommendations for you', uk: 'Рекомендації для вас' },
         sqr_settings_title: { ru: 'SQR', en: 'SQR', uk: 'SQR' }
@@ -541,6 +541,126 @@
         return itemHtml;
     }
 
+    // Стилі для SQR-екрану вибору стрімінгів
+    var SQR_CHOOSER_STYLES = (
+        '.sqr-streaming-chooser { padding: 20px; }' +
+        '.sqr-streaming-chooser__header { margin-bottom: 16px; font-size: 1.1em; color: var(--color-text, #fff); }' +
+        '.sqr-streaming-chooser__list { display: flex; flex-direction: column; gap: 2px; }' +
+        '.sqr-streaming-row { display: flex; align-items: center; gap: 16px; padding: 12px 16px; ' +
+        'background: var(--color-body-bg, rgba(255,255,255,0.06)); border-radius: 8px; ' +
+        'cursor: pointer; min-height: 56px; }' +
+        '.sqr-streaming-row.selector--focus { background: var(--color-body-focus, rgba(255,255,255,0.12)); }' +
+        '.sqr-streaming-row__ico { flex-shrink: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--color-text); }' +
+        '.sqr-streaming-row__ico svg { width: 24px; height: 24px; }' +
+        '.sqr-streaming-row__name { flex: 1; font-size: 1em; color: var(--color-text, #fff); }' +
+        '.sqr-streaming-row__check { width: 24px; height: 24px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.5); ' +
+        'border-radius: 6px; display: flex; align-items: center; justify-content: center; }' +
+        '.sqr-streaming-row__check--on { background: var(--color-action, #00a8e6); border-color: var(--color-action, #00a8e6); }' +
+        '.sqr-streaming-row__check--on::after { content: "✓"; color: #fff; font-size: 14px; font-weight: bold; }'
+    );
+
+    // Компонент SQR: екран вибору стрімінгів — Логотип | Назва | Чекбокс
+    function SqrStreamingChooser(object) {
+        var _this = this;
+        var scroll = new Lampa.Scroll({ horizontal: false, step: 80 });
+        var list = [];
+        var items = [];
+        var html = $('<div class="sqr-streaming-chooser"></div>');
+        var panelTitle = Lampa.Lang.translate('sqr_streaming_chooser_title');
+
+        function buildRow(sid) {
+            var config = SERVICE_CONFIGS[sid];
+            if (!config) return null;
+            var icon = SERVICE_ICONS[sid] || ICON_NETFLIX;
+            var storageKey = SQR_STORAGE_PREFIX + sid;
+            var checked = isSqrServiceEnabled(sid);
+            var row = $(
+                '<div class="sqr-streaming-row selector" data-service="' + sid + '">' +
+                '  <div class="sqr-streaming-row__ico">' + icon + '</div>' +
+                '  <div class="sqr-streaming-row__name">' + config.title + '</div>' +
+                '  <div class="sqr-streaming-row__check' + (checked ? ' sqr-streaming-row__check--on' : '') + '"></div>' +
+                '</div>'
+            );
+            row.data('sid', sid);
+            row.data('checked', checked);
+            row.on('hover:enter', function () {
+                var el = $(this);
+                var sid = el.data('sid');
+                var wasChecked = el.data('checked');
+                var nowChecked = !wasChecked;
+                el.data('checked', nowChecked);
+                Lampa.Storage.set(SQR_STORAGE_PREFIX + sid, nowChecked);
+                el.find('.sqr-streaming-row__check').toggleClass('sqr-streaming-row__check--on', nowChecked);
+            });
+            return row;
+        }
+
+        this.create = function () {
+            if (!$('#sqr-streaming-chooser-styles').length) {
+                $('head').append('<style id="sqr-streaming-chooser-styles">' + SQR_CHOOSER_STYLES + '</style>');
+            }
+            var container = $('<div class="sqr-streaming-chooser__list"></div>');
+            var header = $(
+                '<div class="sqr-streaming-chooser__header">' +
+                '  <span class="sqr-streaming-chooser__title">' + panelTitle + '</span>' +
+                '</div>'
+            );
+            html.append(header);
+            Object.keys(SERVICE_CONFIGS).forEach(function (sid) {
+                var row = buildRow(sid);
+                if (row) {
+                    container.append(row);
+                    items.push(row);
+                }
+            });
+            html.append(container);
+            scroll.append(html);
+            list = items;
+            return this.render();
+        };
+
+        this.render = function () {
+            return scroll.render();
+        };
+
+        this.start = function () {
+            Lampa.Controller.add('content', {
+                toggle: function () {
+                    Lampa.Controller.collectionSet(scroll.render());
+                    Lampa.Controller.collectionFocus(false, scroll.render());
+                },
+                left: function () {
+                    if (Lampa.Navigator && Lampa.Navigator.canmove && Lampa.Navigator.canmove('left')) Lampa.Navigator.move('left');
+                    else Lampa.Controller.toggle('menu');
+                },
+                up: function () {
+                    if (Lampa.Navigator && Lampa.Navigator.canmove && Lampa.Navigator.canmove('up')) Lampa.Navigator.move('up');
+                    else Lampa.Controller.toggle('head');
+                },
+                down: function () {
+                    if (Lampa.Navigator && Lampa.Navigator.move) Lampa.Navigator.move('down');
+                },
+                right: function () {
+                    if (Lampa.Navigator && Lampa.Navigator.move) Lampa.Navigator.move('right');
+                },
+                back: function () {
+                    addStreamingMenuItems();
+                    Lampa.Activity.backward();
+                }
+            });
+            Lampa.Controller.toggle('content');
+        };
+
+        this.pause = function () {};
+        this.stop = function () {};
+        this.destroy = function () {
+            if (scroll && scroll.destroy) scroll.destroy();
+            html.remove();
+        };
+
+        return this;
+    }
+
     function addStreamingMenuItems() {
         var menu = Lampa.Menu.render();
         if (!menu || !menu.length) return;
@@ -572,6 +692,7 @@
     function init() {
         Lampa.Component.add('streaming_main', StreamingMain);
         Lampa.Component.add('streaming_view', StreamingView);
+        Lampa.Component.add('sqr_streaming_chooser', SqrStreamingChooser);
         addStreamingMenuItems();
 
         if (typeof Lampa.SettingsApi !== 'undefined') {
@@ -580,22 +701,21 @@
                 name: Lampa.Lang.translate('sqr_settings_title'),
                 icon: ICON_SQR
             });
-            Object.keys(SERVICE_CONFIGS).forEach(function (sid) {
-                var config = SERVICE_CONFIGS[sid];
-                var storageKey = SQR_STORAGE_PREFIX + sid;
-                Lampa.SettingsApi.addParam({
-                    component: 'sqr',
-                    param: {
-                        name: storageKey,
-                        type: 'trigger',
-                        default: true
-                    },
-                    field: { name: config.title },
-                    onChange: function (value) {
-                        var enabled = value === true || value === 'true';
-                        Lampa.Storage.set(storageKey, enabled);
-                    }
-                });
+            // Один пункт «Вибір стримінгів» — відкриває екран з чекбоксами (Логотип | Назва | Чекбокс)
+            Lampa.SettingsApi.addParam({
+                component: 'sqr',
+                param: {
+                    name: 'sqr_streaming_chooser',
+                    type: 'trigger'
+                },
+                field: { name: Lampa.Lang.translate('sqr_streaming_chooser_title') },
+                onChange: function () {
+                    Lampa.Activity.push({
+                        component: 'sqr_streaming_chooser',
+                        title: Lampa.Lang.translate('sqr_streaming_chooser_title'),
+                        page: 1
+                    });
+                }
             });
         }
     }
