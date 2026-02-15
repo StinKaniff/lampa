@@ -6,7 +6,7 @@
 
     var CDN = 'https://cdn.jsdelivr.net/gh/StinKaniff/lampa@main';
     // Bump version when testing to bust cache (no git tags needed)
-    var STREAMING_MENU_VERSION = '0.0.1';
+    var STREAMING_MENU_VERSION = '0.0.2';
 
     var plugins = [
         CDN + '/streaming/streaming-menu.js?v=' + STREAMING_MENU_VERSION

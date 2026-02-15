@@ -3,29 +3,20 @@
 
     var COMPONENT_NAME = 'streaming_menu_category';
 
-    // Стрімінгові сервіси (TMDB network id)
+    // Watch provider ID (TMDB) — контент саме доступний на цьому стрімінгу в регіоні
+    var WATCH_REGION = 'UA';
     var allStreamingServices = [
-        { id: 49, title: 'HBO' },
-        { id: 77, title: 'SyFy' },
-        { id: 2552, title: 'Apple TV+' },
+        { id: 8, title: 'Netflix' },
+        { id: 384, title: 'HBO Max' },
+        { id: 337, title: 'Disney+' },
+        { id: 119, title: 'Amazon Prime' },
+        { id: 350, title: 'Apple TV+' },
+        { id: 531, title: 'Paramount+' },
         { id: 453, title: 'Hulu' },
-        { id: 1024, title: 'Amazon Prime' },
-        { id: 213, title: 'Netflix' },
-        { id: 3186, title: 'HBO Max' },
-        { id: 2076, title: 'Paramount network' },
-        { id: 4330, title: 'Paramount+' },
-        { id: 3353, title: 'Peacock' },
-        { id: 2739, title: 'Disney+' },
-        { id: 2, title: 'ABC' },
-        { id: 6, title: 'NBC' },
-        { id: 16, title: 'CBS' },
-        { id: 318, title: 'Starz' },
-        { id: 174, title: 'AMC' },
-        { id: 19, title: 'FOX' },
-        { id: 64, title: 'Discovery' },
-        { id: 493, title: 'BBC America' },
-        { id: 88, title: 'FX' },
-        { id: 67, title: 'Showtime' }
+        { id: 386, title: 'Peacock' },
+        { id: 283, title: 'Crunchyroll' },
+        { id: 37, title: 'Showtime' },
+        { id: 43, title: 'Starz' }
     ];
 
     // Локалізація
@@ -40,7 +31,7 @@
 
         comp.create = function () {
             var _this = this;
-            var networkId = object.url;
+            var providerId = object.url;
             var page = object.page || 1;
 
             this.activity.loader(true);
@@ -51,7 +42,8 @@
             }
 
             Lampa.Api.sources.tmdb.get('discover/tv', {
-                with_networks: networkId,
+                with_watch_providers: providerId,
+                watch_region: WATCH_REGION,
                 page: page,
                 sort_by: 'popularity.desc'
             }, function (data) {
@@ -68,7 +60,7 @@
         };
 
         comp.nextPageReuest = function (obj, resolve, reject) {
-            var networkId = obj.url;
+            var providerId = obj.url;
             var page = obj.page || 1;
 
             if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
@@ -77,7 +69,8 @@
             }
 
             Lampa.Api.sources.tmdb.get('discover/tv', {
-                with_networks: networkId,
+                with_watch_providers: providerId,
+                watch_region: WATCH_REGION,
                 page: page,
                 sort_by: 'popularity.desc'
             }, resolve, reject);
