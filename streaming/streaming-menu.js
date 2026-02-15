@@ -6,7 +6,20 @@
      * Кожен сервіс — окремі рядки: нові фільми, нові серіали, в тренді тощо.
      */
 
-    var WATCH_REGION = 'UA';
+    function catNewMoviesProvider(providerId, title) {
+        return {
+            title: title || 'Нові фільми',
+            url: 'discover/movie',
+            params: { with_watch_providers: String(providerId), watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' }
+        };
+    }
+    function catNewTvProvider(providerId, title) {
+        return {
+            title: title || 'Нові серіали',
+            url: 'discover/tv',
+            params: { with_watch_providers: String(providerId), watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' }
+        };
+    }
 
     // TMDB watch provider ID для фільтра «доступно на цьому стрімінгу» (регіон UA)
     var SERVICE_CONFIGS = {
@@ -28,8 +41,8 @@
             title: 'Apple TV+',
             provider_ids: [350],
             categories: [
-                { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
-                { title: 'Нові серіали', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                catNewMoviesProvider(350),
+                catNewTvProvider(350),
                 { title: 'Хіти Apple TV+', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'popularity.desc' } },
                 { title: 'Фантастика Apple', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
                 { title: 'Комедії та Feel-good', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '35', sort_by: 'popularity.desc' } }
@@ -62,8 +75,8 @@
             title: 'Disney+',
             provider_ids: [337],
             categories: [
-                { title: 'Нові фільми на Disney+', url: 'discover/movie', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
-                { title: 'Нові серіали на Disney+', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                catNewMoviesProvider(337, 'Нові фільми на Disney+'),
+                catNewTvProvider(337, 'Нові серіали на Disney+'),
                 { title: 'Marvel: Кіновсесвіт', url: 'discover/movie', params: { with_companies: '420', sort_by: 'release_date.desc', 'vote_count.gte': '200' } },
                 { title: 'Зоряні Війни', url: 'discover/movie', params: { with_companies: '1', sort_by: 'release_date.asc' } },
                 { title: 'Класика Disney', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc' } },
@@ -106,6 +119,7 @@
         streaming_recommend: { ru: 'Рекомендации для вас', en: 'Recommendations for you', uk: 'Рекомендації для вас' }
     });
 
+    // Ліміти: джерела для рекомендацій, макс. карток, продовжити, батч фільтра
     var RECOMMEND_SOURCE_IDS = 5;
     var RECOMMEND_MAX_RESULTS = 20;
     var CONTINUE_MAX = 19;
@@ -131,47 +145,47 @@
         return ids;
     }
 
-    function getProviderIdsForCard(card, callback) {
+    function parseNetworkIdsFromResponse(json) {
+        var ids = [];
+        if (json && json.networks && json.networks.length) {
+            json.networks.forEach(function (n) { if (n.id) ids.push(n.id); });
+        }
+        return ids;
+    }
+
+    function requestTmdb(path, fallbackPath, parse, callback) {
         if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
             callback(null);
             return;
         }
-        var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
-        var path = (isTv ? 'tv' : 'movie') + '/' + card.id + '/watch/providers';
-        Lampa.Api.sources.tmdb.get(path, {}, function (json) {
-            callback(parseProviderIdsFromResponse(json));
+        var api = Lampa.Api.sources.tmdb;
+        api.get(path, {}, function (json) {
+            callback(parse(json));
         }, function () {
-            if (!isTv) {
-                var pathTv = 'tv/' + card.id + '/watch/providers';
-                Lampa.Api.sources.tmdb.get(pathTv, {}, function (json2) {
-                    callback(parseProviderIdsFromResponse(json2));
+            if (fallbackPath) {
+                api.get(fallbackPath, {}, function (json2) {
+                    callback(parse(json2));
                 }, function () { callback(null); });
             } else {
-                var pathMovie = 'movie/' + card.id + '/watch/providers';
-                Lampa.Api.sources.tmdb.get(pathMovie, {}, function (json2) {
-                    callback(parseProviderIdsFromResponse(json2));
-                }, function () { callback(null); });
+                callback(null);
             }
         });
     }
 
+    function getProviderIdsForCard(card, callback) {
+        var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
+        var prefix = isTv ? 'tv' : 'movie';
+        var fallback = (isTv ? 'movie' : 'tv') + '/' + card.id + '/watch/providers';
+        requestTmdb(prefix + '/' + card.id + '/watch/providers', fallback, parseProviderIdsFromResponse, callback);
+    }
+
     function getTvNetworkIds(card, callback) {
-        if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
-            callback(null);
-            return;
-        }
         var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
         if (!isTv) {
             callback([]);
             return;
         }
-        Lampa.Api.sources.tmdb.get('tv/' + card.id, {}, function (json) {
-            var ids = [];
-            if (json && json.networks && json.networks.length) {
-                json.networks.forEach(function (n) { if (n.id) ids.push(n.id); });
-            }
-            callback(ids);
-        }, function () { callback(null); });
+        requestTmdb('tv/' + card.id, null, parseNetworkIdsFromResponse, callback);
     }
 
     function filterCardsByTvNetwork(cards, networkIds, done) {
@@ -237,6 +251,15 @@
             });
         }
         checkNext();
+    }
+
+    function filterCardsForService(cards, config, done) {
+        var networkIds = config.network_ids || [];
+        if (networkIds.length > 0) {
+            filterCardsByTvNetwork(cards, networkIds, done);
+        } else {
+            filterCardsByProvider(cards, config.provider_ids || [], done);
+        }
     }
 
     function getContinueWatching() {
@@ -305,19 +328,18 @@
         return [d.getFullYear(), ('0' + (d.getMonth() + 1)).slice(-2), ('0' + d.getDate()).slice(-2)].join('-');
     }
 
-    function buildCategoryUrl(cat, page) {
-        var params = [];
-        params.push('api_key=' + Lampa.TMDB.key());
-        params.push('language=' + (Lampa.Storage.get('language') || 'uk'));
-        if (page) params.push('page=' + page);
-        if (cat.params) {
-            for (var key in cat.params) {
-                var val = cat.params[key];
-                if (val === '{current_date}') val = getCurrentDate();
-                params.push(key + '=' + encodeURIComponent(val));
-            }
+    function buildDiscoverUrl(opts) {
+        var url = opts.url;
+        var params = opts.params || {};
+        var page = opts.page;
+        var arr = ['api_key=' + Lampa.TMDB.key(), 'language=' + (Lampa.Storage.get('language') || 'uk')];
+        if (page != null) arr.push('page=' + page);
+        for (var key in params) {
+            var val = params[key];
+            if (val === '{current_date}') val = getCurrentDate();
+            arr.push(key + '=' + encodeURIComponent(val));
         }
-        return Lampa.TMDB.api(cat.url + '?' + params.join('&'));
+        return Lampa.TMDB.api(url + '?' + arr.join('&'));
     }
 
     // Головний екран: рядки категорій по одному сервісу (як StudiosMain)
@@ -336,9 +358,6 @@
         var staticDone = false;
         var continueDone = false;
         var continueRow = null;
-        var providerIds = config.provider_ids || [];
-        var networkIds = config.network_ids || [];
-        var useNetworkFilter = networkIds.length > 0;
 
         comp.create = function () {
             var _this = this;
@@ -349,10 +368,7 @@
                 continueDone = true;
                 tryBuild();
             } else {
-                var filterContinue = useNetworkFilter
-                    ? function (cb) { filterCardsByTvNetwork(continueList, networkIds, cb); }
-                    : function (cb) { filterCardsByProvider(continueList, providerIds, cb); };
-                filterContinue(function (filtered) {
+                filterCardsForService(continueList, config, function (filtered) {
                     if (filtered.length) {
                         Lampa.Utils.extendItemsParams(filtered, { style: { name: 'wide' } });
                         continueRow = {
@@ -373,18 +389,14 @@
                     tryBuild();
                     return;
                 }
-                var filterRec = useNetworkFilter
-                    ? function (cb) { filterCardsByTvNetwork(recList, networkIds, cb); }
-                    : function (cb) { filterCardsByProvider(recList, providerIds, cb); };
-                filterRec(function (filtered) {
+                filterCardsForService(recList, config, function (filtered) {
                     recommendationsResults = filtered;
                     recommendationsDone = true;
                     tryBuild();
                 });
             });
 
-            function tryBuild() {
-                if (!continueDone || !recommendationsDone || !staticDone) return;
+            function buildFullData() {
                 var fulldata = [];
                 if (continueRow) fulldata.push(continueRow);
                 if (recommendationsResults.length) {
@@ -409,6 +421,12 @@
                         });
                     }
                 });
+                return fulldata;
+            }
+
+            function tryBuild() {
+                if (!continueDone || !recommendationsDone || !staticDone) return;
+                var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
                     _this.activity.loader(false);
@@ -423,7 +441,7 @@
             };
 
             categories.forEach(function (cat, index) {
-                network.silent(buildCategoryUrl(cat, 1), function (json) {
+                network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
                     status.append(String(index), json);
                 }, function () { status.error(); });
             });
@@ -449,25 +467,10 @@
         var comp = new Lampa.InteractionCategory(object);
         var network = new Lampa.Reguest();
 
-        function buildUrl(page) {
-            var params = [];
-            params.push('api_key=' + Lampa.TMDB.key());
-            params.push('language=' + (Lampa.Storage.get('language') || 'uk'));
-            params.push('page=' + page);
-            if (object.params) {
-                for (var key in object.params) {
-                    var val = object.params[key];
-                    if (val === '{current_date}') val = getCurrentDate();
-                    params.push(key + '=' + encodeURIComponent(val));
-                }
-            }
-            return Lampa.TMDB.api(object.url + '?' + params.join('&'));
-        }
-
         comp.create = function () {
             var _this = this;
             this.activity.loader(true);
-            network.silent(buildUrl(1), function (json) {
+            network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: 1 }), function (json) {
                 _this.build(json);
                 _this.activity.loader(false);
             }, function () {
@@ -477,7 +480,7 @@
         };
 
         comp.nextPageReuest = function (obj, resolve, reject) {
-            network.silent(buildUrl(obj.page || 1), resolve, reject);
+            network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: obj.page || 1 }), resolve, reject);
         };
 
         return comp;
@@ -486,7 +489,7 @@
     function openStreamingPanel() {
         var previousController = Lampa.Controller.enabled().name;
         var items = Object.keys(SERVICE_CONFIGS).map(function (sid) {
-            return { title: SERVICE_CONFIGS[sid].title, id: sid, _serviceId: sid };
+            return { title: SERVICE_CONFIGS[sid].title, id: sid };
         });
 
         Lampa.Select.show({
@@ -497,7 +500,7 @@
             },
             onSelect: function (selectedItem) {
                 try {
-                    var serviceId = selectedItem._serviceId;
+                    var serviceId = selectedItem.id;
                     if (!serviceId) return;
                     var title = SERVICE_CONFIGS[serviceId] ? SERVICE_CONFIGS[serviceId].title : selectedItem.title;
                     Lampa.Controller.toggle(previousController);
