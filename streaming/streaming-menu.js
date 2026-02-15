@@ -61,8 +61,6 @@
                 { title: 'Max Originals', url: 'discover/tv', params: { with_networks: '3186', sort_by: 'popularity.desc' } },
                 { title: 'Золота колекція HBO', url: 'discover/tv', params: { with_networks: '49', sort_by: 'vote_average.desc', 'vote_count.gte': '500', 'vote_average.gte': '8.0' } },
                 { title: 'Епічні світи (Фентезі)', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '10765', sort_by: 'popularity.desc' } },
-                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '99', sort_by: 'popularity.desc' } },
-                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         amazon: {
@@ -74,8 +72,6 @@
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Екшн та антигерої', url: 'discover/tv', params: { with_networks: '1024', with_genres: '10765,10759', sort_by: 'popularity.desc' } },
                 { title: 'Найвищий рейтинг', url: 'discover/tv', params: { with_networks: '1024', 'vote_average.gte': '8.0', 'vote_count.gte': '500', sort_by: 'vote_average.desc' } },
-                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '1024', with_genres: '99', sort_by: 'popularity.desc' } },
-                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '1024', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         disney: {
@@ -88,8 +84,6 @@
                 { title: 'Зоряні Війни', url: 'discover/movie', params: { with_companies: '1', sort_by: 'release_date.asc' } },
                 { title: 'Класика Disney', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc' } },
                 { title: 'Pixar', url: 'discover/movie', params: { with_companies: '3', sort_by: 'popularity.desc' } },
-                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', with_genres: '99', sort_by: 'popularity.desc' } },
-                { title: 'Космос та наука', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         hulu: {
@@ -99,8 +93,6 @@
                 { title: 'Hulu Originals: У тренді', url: 'discover/tv', params: { with_networks: '453', sort_by: 'popularity.desc' } },
                 { title: 'Драми та трилери', url: 'discover/tv', params: { with_networks: '453', with_genres: '18,9648', sort_by: 'vote_average.desc' } },
                 { title: 'Комедії та анімація', url: 'discover/tv', params: { with_networks: '453', with_genres: '35,16', sort_by: 'popularity.desc' } },
-                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '453', with_genres: '99', sort_by: 'popularity.desc' } },
-                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '453', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         paramount: {
@@ -110,8 +102,6 @@
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
                 { title: 'Блокбастери Paramount', url: 'discover/movie', params: { with_companies: '4', sort_by: 'revenue.desc' } },
                 { title: 'Всесвіт Йеллоустоун', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc' } },
-                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '99', sort_by: 'popularity.desc' } },
-                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         origin: {
@@ -125,8 +115,6 @@
                 { title: 'Природа', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc' } },
                 { title: 'Наука', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '30' } },
                 { title: 'National Geographic', url: 'discover/tv', params: { with_networks: '43', sort_by: 'popularity.desc' } },
-                { title: 'Найкраще за рейтингом', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '100' } },
-                { title: 'Свіжий контент (2023+)', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'first_air_date.desc', 'first_air_date.gte': '2023-01-01' } }
             ]
         }
     };
@@ -418,9 +406,31 @@
             var _this = this;
             this.activity.loader(true);
 
+            // Спочатку завантажуємо історію перегляду і фільтруємо по джерелу/стримінгу; якщо нічого не підходить — блок не показуємо
+            function startRest() {
+                fetchRecommendations(function (recList) {
+                    if (recList.length === 0) {
+                        recommendationsDone = true;
+                        tryBuild();
+                        return;
+                    }
+                    filterCardsForService(recList, config, function (filtered) {
+                        recommendationsResults = filtered || [];
+                        recommendationsDone = true;
+                        tryBuild();
+                    });
+                });
+                categories.forEach(function (cat, index) {
+                    network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
+                        status.append(String(index), json);
+                    }, function () { status.error(); });
+                });
+            }
+
             var continueList = getContinueWatching();
             if (continueList.length === 0) {
                 continueDone = true;
+                startRest();
                 tryBuild();
             } else {
                 filterCardsForService(continueList, config, function (filtered) {
@@ -435,22 +445,10 @@
                         };
                     }
                     continueDone = true;
+                    startRest();
                     tryBuild();
                 });
             }
-
-            fetchRecommendations(function (recList) {
-                if (recList.length === 0) {
-                    recommendationsDone = true;
-                    tryBuild();
-                    return;
-                }
-                filterCardsForService(recList, config, function (filtered) {
-                    recommendationsResults = filtered;
-                    recommendationsDone = true;
-                    tryBuild();
-                });
-            });
 
             function buildFullData() {
                 var fulldata = [];
@@ -496,11 +494,6 @@
                 tryBuild();
             };
 
-            categories.forEach(function (cat, index) {
-                network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
-                    status.append(String(index), json);
-                }, function () { status.error(); });
-            });
             return this.render();
         };
 
@@ -722,32 +715,7 @@
     function init() {
         Lampa.Component.add('streaming_main', StreamingMain);
         Lampa.Component.add('streaming_view', StreamingView);
-        Lampa.Component.add('sqr_streaming_chooser', SqrStreamingChooser);
         addStreamingMenuItems();
-
-        if (typeof Lampa.SettingsApi !== 'undefined') {
-            Lampa.SettingsApi.addComponent({
-                component: 'sqr',
-                name: Lampa.Lang.translate('sqr_settings_title'),
-                icon: ICON_SQR
-            });
-            // Один пункт «Вибір стримінгів» — відкриває екран з чекбоксами (Логотип | Назва | Чекбокс)
-            Lampa.SettingsApi.addParam({
-                component: 'sqr',
-                param: {
-                    name: 'sqr_streaming_chooser',
-                    type: 'trigger'
-                },
-                field: { name: Lampa.Lang.translate('sqr_streaming_chooser_title') },
-                onChange: function () {
-                    Lampa.Activity.push({
-                        component: 'sqr_streaming_chooser',
-                        title: Lampa.Lang.translate('sqr_streaming_chooser_title'),
-                        page: 1
-                    });
-                }
-            });
-        }
     }
 
     if (typeof Lampa === 'undefined') {
