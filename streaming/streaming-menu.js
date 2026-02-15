@@ -149,7 +149,8 @@
     // Ліміти: джерела для рекомендацій, макс. карток (до фільтра за сервісом), продовжити, батч фільтра
     var RECOMMEND_SOURCE_IDS = 8;
     var RECOMMEND_MAX_RESULTS = 50;
-    var CONTINUE_MAX = 19;
+    var CONTINUE_MAX = 19;           // скільки показувати в рядку «Продовжити перегляд»
+    var CONTINUE_FETCH_MAX = 60;     // скільки брати з історії перед фільтром (щоб після фільтра по сервісу лишалось достатньо)
     var FILTER_BATCH_SIZE = 5;
 
     // Для блоку «Продовжити» / «Рекомендації» регіон не використовуємо — збираємо провайдерів з усіх регіонів
@@ -299,7 +300,7 @@
         var list = history.filter(function (e) {
             return viewedIds.indexOf(e.id) === -1 && thrownIds.indexOf(e.id) === -1;
         });
-        return list.slice(0, CONTINUE_MAX);
+        return list.slice(0, CONTINUE_FETCH_MAX);
     }
 
     function fetchRecommendations(done) {
@@ -397,10 +398,11 @@
             } else {
                 filterCardsForService(continueList, config, function (filtered) {
                     if (filtered.length) {
-                        Lampa.Utils.extendItemsParams(filtered, { style: { name: 'wide' } });
+                        var toShow = filtered.slice(0, CONTINUE_MAX);
+                        Lampa.Utils.extendItemsParams(toShow, { style: { name: 'wide' } });
                         continueRow = {
                             title: Lampa.Lang.translate('streaming_continue'),
-                            results: filtered,
+                            results: toShow,
                             url: null,
                             params: null
                         };
