@@ -33,7 +33,9 @@
                 { title: 'Екшн та блокбастери', url: 'discover/movie', params: { with_companies: '213', with_genres: '28,12', sort_by: 'popularity.desc' } },
                 { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
                 { title: 'Кримінальні драми', url: 'discover/tv', params: { with_networks: '213', with_genres: '80', sort_by: 'popularity.desc' } },
-                { title: 'Вибір критиків', url: 'discover/movie', params: { with_companies: '213', 'vote_average.gte': '7.5', 'vote_count.gte': '300', sort_by: 'vote_average.desc' } }
+                { title: 'Вибір критиків', url: 'discover/movie', params: { with_companies: '213', 'vote_average.gte': '7.5', 'vote_count.gte': '300', sort_by: 'vote_average.desc' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '213', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '213', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         apple: {
@@ -44,7 +46,9 @@
                 catNewTvProvider(350),
                 { title: 'Хіти Apple TV+', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'popularity.desc' } },
                 { title: 'Фантастика Apple', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
-                { title: 'Комедії та Feel-good', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '35', sort_by: 'popularity.desc' } }
+                { title: 'Комедії та Feel-good', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '35', sort_by: 'popularity.desc' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         hbo: {
@@ -56,7 +60,9 @@
                 { title: 'HBO: Головні хіти', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc' } },
                 { title: 'Max Originals', url: 'discover/tv', params: { with_networks: '3186', sort_by: 'popularity.desc' } },
                 { title: 'Золота колекція HBO', url: 'discover/tv', params: { with_networks: '49', sort_by: 'vote_average.desc', 'vote_count.gte': '500', 'vote_average.gte': '8.0' } },
-                { title: 'Епічні світи (Фентезі)', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '10765', sort_by: 'popularity.desc' } }
+                { title: 'Епічні світи (Фентезі)', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '10765', sort_by: 'popularity.desc' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         amazon: {
@@ -67,7 +73,9 @@
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '119', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Екшн та антигерої', url: 'discover/tv', params: { with_networks: '1024', with_genres: '10765,10759', sort_by: 'popularity.desc' } },
-                { title: 'Найвищий рейтинг', url: 'discover/tv', params: { with_networks: '1024', 'vote_average.gte': '8.0', 'vote_count.gte': '500', sort_by: 'vote_average.desc' } }
+                { title: 'Найвищий рейтинг', url: 'discover/tv', params: { with_networks: '1024', 'vote_average.gte': '8.0', 'vote_count.gte': '500', sort_by: 'vote_average.desc' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '1024', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '1024', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         disney: {
@@ -79,7 +87,9 @@
                 { title: 'Marvel: Кіновсесвіт', url: 'discover/movie', params: { with_companies: '420', sort_by: 'release_date.desc', 'vote_count.gte': '200' } },
                 { title: 'Зоряні Війни', url: 'discover/movie', params: { with_companies: '1', sort_by: 'release_date.asc' } },
                 { title: 'Класика Disney', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc' } },
-                { title: 'Pixar', url: 'discover/movie', params: { with_companies: '3', sort_by: 'popularity.desc' } }
+                { title: 'Pixar', url: 'discover/movie', params: { with_companies: '3', sort_by: 'popularity.desc' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         hulu: {
@@ -88,7 +98,9 @@
             categories: [
                 { title: 'Hulu Originals: У тренді', url: 'discover/tv', params: { with_networks: '453', sort_by: 'popularity.desc' } },
                 { title: 'Драми та трилери', url: 'discover/tv', params: { with_networks: '453', with_genres: '18,9648', sort_by: 'vote_average.desc' } },
-                { title: 'Комедії та анімація', url: 'discover/tv', params: { with_networks: '453', with_genres: '35,16', sort_by: 'popularity.desc' } }
+                { title: 'Комедії та анімація', url: 'discover/tv', params: { with_networks: '453', with_genres: '35,16', sort_by: 'popularity.desc' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '453', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '453', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         },
         paramount: {
@@ -97,7 +109,22 @@
             categories: [
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
                 { title: 'Блокбастери Paramount', url: 'discover/movie', params: { with_companies: '4', sort_by: 'revenue.desc' } },
-                { title: 'Всесвіт Йеллоустоун', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc' } }
+                { title: 'Всесвіт Йеллоустоун', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
+            ]
+        },
+        origin: {
+            title: 'Origin',
+            provider_ids: [],
+            network_ids: [43, 1043], // National Geographic, Nat Geo Wild
+            categories: [
+                { title: 'National Geographic', url: 'discover/tv', params: { with_networks: '43', sort_by: 'popularity.desc' } },
+                { title: 'Nat Geo Wild: Дика природа', url: 'discover/tv', params: { with_networks: '1043', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '43', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Наука і дослідження', url: 'discover/tv', params: { with_networks: '43', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Всесвіт: створення світу', url: 'discover/tv', params: { with_networks: '43', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '100' } }
             ]
         }
     };
@@ -111,7 +138,7 @@
     var ICON_AMAZON = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M456 370c0 15-8 43-26 58-4 3-8 2-6-2 5-13 17-43 12-50-4-6-21-5-35-4l-17 2c-4 0-4-3 0-6 5-4 11-7 17-8 23-7 50-3 53 1 1 1 2 3 2 9Zm-38 26-17 11a294 294 0 0 1-343-37c-4-3-1-9 4-6a397 397 0 0 0 339 26l10-4c7-3 14 5 7 10ZM294 176c0-21 1-33-6-44-6-9-17-14-31-13-16 1-33 11-38 31-1 4-3 8-9 9l-48-6c-4-1-9-3-7-10 10-55 57-75 102-77h10c25 0 56 7 76 25 24 23 22 53 22 87v78c0 24 9 34 19 46 2 5 3 10-1 13l-38 34c-4 2-10 2-13 0-15-12-19-20-28-33-17 18-31 27-47 33-12 3-24 4-36 4-42 0-75-26-75-78 0-41 22-69 54-82s79-17 94-17m-9 104c10-18 9-32 9-64-13 0-26 1-37 3-21 6-38 20-38 48 0 21 12 36 31 36l7-1c13-3 21-10 28-22Z"/></svg>';
     var ICON_HULU = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M399 271v175h-92V292c0-13-11-25-24-25h-55c-14 0-25 12-25 25v154h-89V66h91v122c5-2 11-4 17-4h91c48 0 86 40 86 87Z"/></svg>';
     var ICON_PARAMOUNT = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M328 412c1-1 3-5 0-12l-9-24c-1-3 2-5 3-3 0 0 17 19 21 28l9 13 45 1-5-6c-32-40-53-62-53-62-6-7-9-9-14-11l-3-1v6l-1 1-47-84c-2-4-5-7-9-10l-5-3-22 52c3 0 6 4 4 7l-20 48h19c7 0 14 2 21 4l5 3s-15 31-15 47l1 9h35l-1-10s21 5 41 7ZM256 97A200 200 0 0 0 95 415c8-3 13-9 16-13l38-47 3-3 5-2 62-78 8-7 19-25 1-2 8-6a6 6 0 0 1 7 0l10 7c5 4 9 8 12 14l38 68 3 3c8 4 13 4 23 15 4 5 25 28 53 63 4 6 9 10 16 13A200 200 0 0 0 256 96ZM110 308l-13-5-8 11v-13l-13-4 13-5v-13l8 11 13-4-8 11 8 11Zm-3 44-4 13-5-13H85l11-8-4-13 11 8 11-8-5 13 11 8h-13Zm2-103 5 13-11-8-11 8 4-13-11-8h13l5-13 4 13h13l-11 8Zm22-29-8-11-13 4 8-11-8-11 13 4 8-11v14l13 4-13 4v14Zm34-48-4 13-4-13h-14l11-8-4-13 11 8 11-8-4 13 11 8h-14Zm43-22-8 11v-13l-13-5 13-4v-14l8 11 13-4-8 11 8 11-13-4Zm55-12 4 13-11-8-11 8 4-13-11-8h14l4-13 4 13h14l-11 8Zm49 10v13l-8-11-13 4 8-11-8-11 13 4 8-11v14l13 4-13 5Zm90 138 13 4 8-11v13l13 5-13 4v13l-8-11-13 5 8-11-8-11Zm-51-101-4-13h-14l11-8-4-13 11 8 11-8-4 13 11 8h-14l-4 13Zm30 35v-14l-13-4 13-4v-14l8 11 13-4-8 11 8 11-13-4-8 11Zm24 21 4-13 5 13h13l-11 8 4 13-11-8-11 8 5-13-11-8h13Zm9 111-5 13-4-13h-13l11-8-5-13 11 8 11-8-4 13 11 8h-13Zm-202-10 13-26-1-2-11 12c-5 5-14 20-16 23l-14 23a2 2 0 0 1 2 2l-12 21c-3 5 2 9 3 7 19-31 30-28 30-28l7-15-1-2c-2-1-5-5 0-15Z"/></svg>';
-    var ICON_SQR = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><defs><clipPath id="sqr-clip"><path fill="#fff" d="M0 0h512v512H0z"/></clipPath></defs><g clip-path="url(#sqr-clip)"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="42.667" d="M386.371 362.667V256m-104.297 80 26.074 26.667M21.333 336c0 7.073 2.748 13.855 7.637 18.856 4.89 5.001 11.522 7.811 18.438 7.811h52.148c6.915 0 13.547-2.81 18.437-7.811 4.89-5.001 7.637-11.783 7.637-18.856v-53.333c0-7.073-2.747-13.855-7.637-18.856-4.89-5.001-11.522-7.811-18.437-7.811H47.408c-6.916 0-13.548-2.809-18.438-7.81-4.89-5.001-7.636-11.784-7.636-18.857V176c0-7.072 2.747-13.855 7.636-18.856 4.89-5.001 11.522-7.811 18.438-7.811h52.148c6.915 0 13.547 2.81 18.437 7.811 4.89 5.001 7.637 11.784 7.637 18.856m260.741 80V149.333h78.222c6.915 0 13.547 2.81 18.437 7.811 4.89 5.001 7.637 11.784 7.637 18.856v53.333c0 7.073-2.747 13.856-7.637 18.857-4.89 5.001-11.522 7.81-18.437 7.81h-78.222Zm52.148 0 52.148 106.667M256 149.333c13.831 0 27.095 5.62 36.874 15.621 9.78 10.002 15.274 23.568 15.274 37.713v106.666c0 14.145-5.494 27.711-15.274 37.713-9.779 10.002-23.043 15.621-36.874 15.621-13.83 0-27.094-5.619-36.874-15.621-9.78-10.002-15.274-23.568-15.274-37.713V202.667c0-14.145 5.494-27.711 15.274-37.713 9.78-10.001 23.044-15.621 36.874-15.621Z"/></g></svg>';
+    var ICON_ORIGIN = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" fill-rule="evenodd" d="M182.279 80.8a190.046 190.046 0 0 1 249.115 102.526 190.048 190.048 0 0 1-103.671 248.64 190.045 190.045 0 0 1-247.26-103.295 190.05 190.05 0 0 1 101.823-247.87m-69.996 99.288a162.24 162.24 0 0 1 35.611-45.021 31.739 31.739 0 0 1 11.06-1.805h.197l15.532 18.021 11.912-1.087 6.235-.571a15.73 15.73 0 0 0 9.692-4.556 15.728 15.728 0 0 1 10.184-4.599l9.818-.585 10.453 11.849a17.338 17.338 0 0 1 2.681 18.868 17.33 17.33 0 0 1-6.646 7.4 17.326 17.326 0 0 1-9.619 2.53l-14.671-.493a5.22 5.22 0 0 0-4.747 2.701 5.218 5.218 0 0 1-6.326 2.398l-24.031-8.548a6.63 6.63 0 0 1-4.373-5.467 6.656 6.656 0 0 0-6.841-5.854l-23.05.776a4.508 4.508 0 0 1-3.703-1.693 4.556 4.556 0 0 0-3.571-1.706 4.547 4.547 0 0 0-3.553 1.742l-12.244 15.7Zm110.241-40.203 3.908-8.45a24.828 24.828 0 0 1 20.659-14.318l5.05-.381a15.944 15.944 0 0 1 14.262 6.771l2.87 4.105a10.168 10.168 0 0 1-.813 12.683 10.175 10.175 0 0 1-12.553 1.988l-4.105-2.328a16.645 16.645 0 0 0-9.909-2.081l-19.369 2.011Zm-117.034 54.563a170.278 170.278 0 0 1 1.848-4.281 21.508 21.508 0 0 0-.282 1.855l-1.975 18.613a52.77 52.77 0 0 0 15.073 42.814l7.173 7.215a27.864 27.864 0 0 0 19.418 8.21 27.881 27.881 0 0 1 27.535 27.381l.212 11.807a22.13 22.13 0 0 0 8.393 16.948 22.154 22.154 0 0 1 8.394 16.646l.818 26.083a23.313 23.313 0 0 0 4.443 12.95 23.188 23.188 0 0 0 35.563 2.398l8.33-8.746a50.57 50.57 0 0 0 13.958-34.716l.113-35.034a39.5 39.5 0 0 1 11.221-27.451l6.969-7.131a21.864 21.864 0 0 0 .064-30.455l-32.699-33.792a5.403 5.403 0 0 1-1.621-3.891 5.404 5.404 0 0 1 1.663-3.873 5.41 5.41 0 0 1 7.759.273l16.97 17.831a27.153 27.153 0 0 0 18.528 8.4l5.178.212a15.336 15.336 0 0 0 11.496-26.147l-17.576-17.619a4.232 4.232 0 0 1 5.974-5.995l7.935 7.836a12.804 12.804 0 0 0 8.936 3.703l6.955.043a29.917 29.917 0 0 1 14.503 3.843 29.918 29.918 0 0 1 10.811 10.404l16.829 27.388a4.445 4.445 0 0 0 8.054-1.093l4.091-14.093a21.123 21.123 0 0 1 3.252-6.602l3.413-4.648c8.323-11.32 24.792-11.595 33.616-1.375a161.848 161.848 0 0 1 8.591 77.403 161.852 161.852 0 0 1-28.557 72.453 161.853 161.853 0 0 1-59.092 50.726 161.848 161.848 0 0 1-151.152-2.965 161.831 161.831 0 0 1-82.75-126.521 161.845 161.845 0 0 1 11.618-77.007m175.329 147.815a8.392 8.392 0 0 1-7.897-5.514 8.387 8.387 0 0 1-.496-3.359l.395-7.075a15.072 15.072 0 0 1 3.054-8.308l2.68-3.527a7.253 7.253 0 0 1 11.772.293 7.251 7.251 0 0 1 1.255 4.327l-.324 10.375a13.17 13.17 0 0 1-1.784 6.207l-1.39 2.398a8.39 8.39 0 0 1-7.265 4.183Z" clip-rule="evenodd"/></svg>';
     var SERVICE_ICONS = {
         netflix: ICON_NETFLIX,
         apple: ICON_APPLE,
@@ -119,7 +146,8 @@
         amazon: ICON_AMAZON,
         disney: ICON_DISNEY,
         hulu: ICON_HULU,
-        paramount: ICON_PARAMOUNT
+        paramount: ICON_PARAMOUNT,
+        origin: ICON_ORIGIN
     };
 
     var SQR_STORAGE_PREFIX = 'sqr_show_';
