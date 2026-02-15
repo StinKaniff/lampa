@@ -1,23 +1,92 @@
 (function () {
     'use strict';
 
-    var COMPONENT_NAME = 'streaming_menu_category';
+    /**
+     * Стрімінги з категоріями (за зразком studios.js by Syvyj).
+     * Кожен сервіс — окремі рядки: нові фільми, нові серіали, в тренді тощо.
+     */
 
-    // Watch provider ID (TMDB) — контент саме доступний на цьому стрімінгу в регіоні
     var WATCH_REGION = 'UA';
-    var allStreamingServices = [
-        { id: 8, title: 'Netflix' },
-        { id: 384, title: 'HBO Max' },
-        { id: 337, title: 'Disney+' },
-        { id: 119, title: 'Amazon Prime' },
-        { id: 350, title: 'Apple TV+' },
-        { id: 531, title: 'Paramount+' },
-        { id: 453, title: 'Hulu' },
-        { id: 386, title: 'Peacock' },
-        { id: 283, title: 'Crunchyroll' },
-        { id: 37, title: 'Showtime' },
-        { id: 43, title: 'Starz' }
-    ];
+
+    var SERVICE_CONFIGS = {
+        netflix: {
+            title: 'Netflix',
+            categories: [
+                { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'В тренді на Netflix', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc' } },
+                { title: 'Екшн та блокбастери', url: 'discover/movie', params: { with_companies: '213', with_genres: '28,12', sort_by: 'popularity.desc' } },
+                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
+                { title: 'Кримінальні драми', url: 'discover/tv', params: { with_networks: '213', with_genres: '80', sort_by: 'popularity.desc' } },
+                { title: 'K-Dramas', url: 'discover/tv', params: { with_networks: '213', with_original_language: 'ko', sort_by: 'popularity.desc' } },
+                { title: 'Вибір критиків', url: 'discover/movie', params: { with_companies: '213', 'vote_average.gte': '7.5', 'vote_count.gte': '300', sort_by: 'vote_average.desc' } }
+            ]
+        },
+        apple: {
+            title: 'Apple TV+',
+            categories: [
+                { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Нові серіали', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Хіти Apple TV+', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'popularity.desc' } },
+                { title: 'Фантастика Apple', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
+                { title: 'Комедії та Feel-good', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '35', sort_by: 'popularity.desc' } }
+            ]
+        },
+        hbo: {
+            title: 'HBO',
+            categories: [
+                { title: 'Нові серіали HBO/Max', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'HBO: Головні хіти', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc' } },
+                { title: 'Max Originals', url: 'discover/tv', params: { with_networks: '3186', sort_by: 'popularity.desc' } },
+                { title: 'Золота колекція HBO', url: 'discover/tv', params: { with_networks: '49', sort_by: 'vote_average.desc', 'vote_count.gte': '500', 'vote_average.gte': '8.0' } },
+                { title: 'Епічні світи (Фентезі)', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '10765', sort_by: 'popularity.desc' } }
+            ]
+        },
+        amazon: {
+            title: 'Prime Video',
+            categories: [
+                { title: 'В тренді на Prime Video', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc' } },
+                { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '119', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Екшн та антигерої', url: 'discover/tv', params: { with_networks: '1024', with_genres: '10765,10759', sort_by: 'popularity.desc' } },
+                { title: 'Найвищий рейтинг', url: 'discover/tv', params: { with_networks: '1024', 'vote_average.gte': '8.0', 'vote_count.gte': '500', sort_by: 'vote_average.desc' } }
+            ]
+        },
+        disney: {
+            title: 'Disney+',
+            categories: [
+                { title: 'Нові фільми на Disney+', url: 'discover/movie', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Нові серіали на Disney+', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Marvel: Кіновсесвіт', url: 'discover/movie', params: { with_companies: '420', sort_by: 'release_date.desc', 'vote_count.gte': '200' } },
+                { title: 'Зоряні Війни', url: 'discover/movie', params: { with_companies: '1', sort_by: 'release_date.asc' } },
+                { title: 'Класика Disney', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc' } },
+                { title: 'Pixar', url: 'discover/movie', params: { with_companies: '3', sort_by: 'popularity.desc' } }
+            ]
+        },
+        hulu: {
+            title: 'Hulu',
+            categories: [
+                { title: 'Hulu Originals: У тренді', url: 'discover/tv', params: { with_networks: '453', sort_by: 'popularity.desc' } },
+                { title: 'Драми та трилери', url: 'discover/tv', params: { with_networks: '453', with_genres: '18,9648', sort_by: 'vote_average.desc' } },
+                { title: 'Комедії та анімація', url: 'discover/tv', params: { with_networks: '453', with_genres: '35,16', sort_by: 'popularity.desc' } }
+            ]
+        },
+        paramount: {
+            title: 'Paramount+',
+            categories: [
+                { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
+                { title: 'Блокбастери Paramount', url: 'discover/movie', params: { with_companies: '4', sort_by: 'revenue.desc' } },
+                { title: 'Всесвіт Йеллоустоун', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc' } }
+            ]
+        },
+        syfy: {
+            title: 'Syfy',
+            categories: [
+                { title: 'Хіти Syfy', url: 'discover/tv', params: { with_networks: '77', sort_by: 'popularity.desc' } },
+                { title: 'Наукова фантастика', url: 'discover/tv', params: { with_networks: '77', with_genres: '10765', sort_by: 'vote_average.desc' } }
+            ]
+        }
+    };
 
     // Локалізація
     Lampa.Lang.add({
@@ -25,55 +94,119 @@
         streaming_menu_panel_title: { ru: 'Выбор стриминговых сервисов', en: 'Choose streaming services', uk: 'Вибір стрімінгових сервісів' }
     });
 
-    // Компонент категорії: список серіалів/фільмів по вибраному стрімінгу (TMDB discover by network)
-    function streamingCategoryComponent(object) {
-        var comp = new Lampa.InteractionCategory(object);
+    function getCurrentDate() {
+        var d = new Date();
+        return [d.getFullYear(), ('0' + (d.getMonth() + 1)).slice(-2), ('0' + d.getDate()).slice(-2)].join('-');
+    }
+
+    function buildCategoryUrl(cat, page) {
+        var params = [];
+        params.push('api_key=' + Lampa.TMDB.key());
+        params.push('language=' + (Lampa.Storage.get('language') || 'uk'));
+        if (page) params.push('page=' + page);
+        if (cat.params) {
+            for (var key in cat.params) {
+                var val = cat.params[key];
+                if (val === '{current_date}') val = getCurrentDate();
+                params.push(key + '=' + encodeURIComponent(val));
+            }
+        }
+        return Lampa.TMDB.api(cat.url + '?' + params.join('&'));
+    }
+
+    // Головний екран: рядки категорій по одному сервісу (як StudiosMain)
+    function StreamingMain(object) {
+        var comp = new Lampa.InteractionMain(object);
+        var config = SERVICE_CONFIGS[object.service_id];
+        if (!config) {
+            comp.create = function () { this.empty(); return this.render(); };
+            return comp;
+        }
+        var categories = config.categories;
+        var network = new Lampa.Reguest();
+        var status = new Lampa.Status(categories.length);
 
         comp.create = function () {
             var _this = this;
-            var providerId = object.url;
-            var page = object.page || 1;
-
             this.activity.loader(true);
-
-            if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
-                this.empty();
-                return this.render();
-            }
-
-            Lampa.Api.sources.tmdb.get('discover/tv', {
-                with_watch_providers: providerId,
-                watch_region: WATCH_REGION,
-                page: page,
-                sort_by: 'popularity.desc'
-            }, function (data) {
-                if (data && data.results && data.results.length) {
-                    _this.build(data);
+            status.onComplite = function () {
+                var fulldata = [];
+                Object.keys(status.data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
+                    var data = status.data[key];
+                    if (data && data.results && data.results.length) {
+                        var cat = categories[parseInt(key, 10)];
+                        Lampa.Utils.extendItemsParams(data.results, { style: { name: 'wide' } });
+                        fulldata.push({
+                            title: cat.title,
+                            results: data.results,
+                            url: cat.url,
+                            params: cat.params
+                        });
+                    }
+                });
+                if (fulldata.length) {
+                    _this.build(fulldata);
+                    _this.activity.loader(false);
                 } else {
                     _this.empty();
                 }
+            };
+
+            categories.forEach(function (cat, index) {
+                network.silent(buildCategoryUrl(cat, 1), function (json) {
+                    status.append(String(index), json);
+                }, function () { status.error(); });
+            });
+            return this.render();
+        };
+
+        comp.onMore = function (data) {
+            Lampa.Activity.push({
+                url: data.url,
+                params: data.params,
+                title: data.title,
+                component: 'streaming_view',
+                page: 1
+            });
+        };
+
+        return comp;
+    }
+
+    // Повний список однієї категорії з пагінацією (як StudiosView)
+    function StreamingView(object) {
+        var comp = new Lampa.InteractionCategory(object);
+        var network = new Lampa.Reguest();
+
+        function buildUrl(page) {
+            var params = [];
+            params.push('api_key=' + Lampa.TMDB.key());
+            params.push('language=' + (Lampa.Storage.get('language') || 'uk'));
+            params.push('page=' + page);
+            if (object.params) {
+                for (var key in object.params) {
+                    var val = object.params[key];
+                    if (val === '{current_date}') val = getCurrentDate();
+                    params.push(key + '=' + encodeURIComponent(val));
+                }
+            }
+            return Lampa.TMDB.api(object.url + '?' + params.join('&'));
+        }
+
+        comp.create = function () {
+            var _this = this;
+            this.activity.loader(true);
+            network.silent(buildUrl(1), function (json) {
+                _this.build(json);
+                _this.activity.loader(false);
             }, function () {
                 _this.empty();
             });
-
             return this.render();
         };
 
         comp.nextPageReuest = function (obj, resolve, reject) {
-            var providerId = obj.url;
-            var page = obj.page || 1;
-
-            if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
-                reject();
-                return;
-            }
-
-            Lampa.Api.sources.tmdb.get('discover/tv', {
-                with_watch_providers: providerId,
-                watch_region: WATCH_REGION,
-                page: page,
-                sort_by: 'popularity.desc'
-            }, resolve, reject);
+            network.silent(buildUrl(obj.page || 1), resolve, reject);
         };
 
         return comp;
@@ -81,43 +214,29 @@
 
     function openStreamingPanel() {
         var previousController = Lampa.Controller.enabled().name;
-
-        var items = allStreamingServices.map(function (service) {
-            return {
-                title: service.title,
-                id: String(service.id),
-                _serviceId: service.id,
-                _serviceTitle: service.title
-            };
+        var items = Object.keys(SERVICE_CONFIGS).map(function (sid) {
+            return { title: SERVICE_CONFIGS[sid].title, id: sid, _serviceId: sid };
         });
 
         Lampa.Select.show({
             title: Lampa.Lang.translate('streaming_menu_panel_title'),
             items: items,
             onBack: function () {
-                try {
-                    Lampa.Controller.toggle(previousController);
-                } catch (e) {
-                    console.error('streaming-menu onBack:', e);
-                }
+                try { Lampa.Controller.toggle(previousController); } catch (e) { console.error('streaming-menu onBack:', e); }
             },
             onSelect: function (selectedItem) {
                 try {
                     var serviceId = selectedItem._serviceId;
-                    var serviceTitle = selectedItem._serviceTitle || selectedItem.title;
-                    if (serviceId === undefined) return;
-
+                    if (!serviceId) return;
+                    var title = SERVICE_CONFIGS[serviceId] ? SERVICE_CONFIGS[serviceId].title : selectedItem.title;
                     Lampa.Controller.toggle(previousController);
-
                     Lampa.Activity.push({
-                        component: COMPONENT_NAME,
-                        url: String(serviceId),
-                        title: serviceTitle,
+                        component: 'streaming_main',
+                        service_id: serviceId,
+                        title: title,
                         page: 1
                     });
-                } catch (e) {
-                    console.error('streaming-menu onSelect:', e);
-                }
+                } catch (e) { console.error('streaming-menu onSelect:', e); }
             }
         });
     }
@@ -125,7 +244,6 @@
     function addMenuItem() {
         var menu = Lampa.Menu.render();
         if (!menu || !menu.length) return;
-
         var title = Lampa.Lang.translate('streaming_menu_title');
         var dataAction = 'streaming_menu_open';
         var itemHtml = $(
@@ -138,24 +256,15 @@
             '  <div class="menu__text">' + title + '</div>' +
             '</li>'
         );
-
-        itemHtml.on('hover:enter', function () {
-            openStreamingPanel();
-        });
-
-        var afterItem = menu.find('[data-action="catalog"]');
-        if (!afterItem.length) {
-            afterItem = menu.find('[data-action="tv"]');
-        }
-        if (afterItem.length) {
-            afterItem.after(itemHtml);
-        } else {
-            menu.find('.menu__item').last().after(itemHtml);
-        }
+        itemHtml.on('hover:enter', function () { openStreamingPanel(); });
+        var afterItem = menu.find('[data-action="catalog"]').length ? menu.find('[data-action="catalog"]') : menu.find('[data-action="tv"]');
+        if (afterItem.length) afterItem.after(itemHtml);
+        else menu.find('.menu__item').last().after(itemHtml);
     }
 
     function init() {
-        Lampa.Component.add(COMPONENT_NAME, streamingCategoryComponent);
+        Lampa.Component.add('streaming_main', StreamingMain);
+        Lampa.Component.add('streaming_view', StreamingView);
         addMenuItem();
     }
 
@@ -163,14 +272,6 @@
         console.warn('streaming-menu.js: Lampa not found');
         return;
     }
-
-    if (window.appready) {
-        init();
-    } else {
-        Lampa.Listener.follow('app', function (e) {
-            if (e.type === 'ready') {
-                init();
-            }
-        });
-    }
+    if (window.appready) init();
+    else Lampa.Listener.follow('app', function (e) { if (e.type === 'ready') init(); });
 })();
