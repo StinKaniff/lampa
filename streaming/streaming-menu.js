@@ -8,9 +8,11 @@
 
     var WATCH_REGION = 'UA';
 
+    // TMDB watch provider ID для фільтра «доступно на цьому стрімінгу» (регіон UA)
     var SERVICE_CONFIGS = {
         netflix: {
             title: 'Netflix',
+            provider_ids: [8],
             categories: [
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -24,6 +26,7 @@
         },
         apple: {
             title: 'Apple TV+',
+            provider_ids: [350],
             categories: [
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -34,6 +37,7 @@
         },
         hbo: {
             title: 'HBO',
+            provider_ids: [384, 49],
             categories: [
                 { title: 'Нові серіали HBO/Max', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'HBO: Головні хіти', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc' } },
@@ -44,6 +48,7 @@
         },
         amazon: {
             title: 'Prime Video',
+            provider_ids: [119],
             categories: [
                 { title: 'В тренді на Prime Video', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc' } },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '119', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -54,6 +59,7 @@
         },
         disney: {
             title: 'Disney+',
+            provider_ids: [337],
             categories: [
                 { title: 'Нові фільми на Disney+', url: 'discover/movie', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Нові серіали на Disney+', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -65,6 +71,7 @@
         },
         hulu: {
             title: 'Hulu',
+            provider_ids: [453],
             categories: [
                 { title: 'Hulu Originals: У тренді', url: 'discover/tv', params: { with_networks: '453', sort_by: 'popularity.desc' } },
                 { title: 'Драми та трилери', url: 'discover/tv', params: { with_networks: '453', with_genres: '18,9648', sort_by: 'vote_average.desc' } },
@@ -73,6 +80,7 @@
         },
         paramount: {
             title: 'Paramount+',
+            provider_ids: [531],
             categories: [
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
                 { title: 'Блокбастери Paramount', url: 'discover/movie', params: { with_companies: '4', sort_by: 'revenue.desc' } },
@@ -81,6 +89,7 @@
         },
         syfy: {
             title: 'Syfy',
+            provider_ids: [], // немає watch provider для UA — показуємо без фільтра
             categories: [
                 { title: 'Хіти Syfy', url: 'discover/tv', params: { with_networks: '77', sort_by: 'popularity.desc' } },
                 { title: 'Наукова фантастика', url: 'discover/tv', params: { with_networks: '77', with_genres: '10765', sort_by: 'vote_average.desc' } }
@@ -99,6 +108,58 @@
     var RECOMMEND_SOURCE_IDS = 5;
     var RECOMMEND_MAX_RESULTS = 20;
     var CONTINUE_MAX = 19;
+    var FILTER_BATCH_SIZE = 5;
+
+    function getProviderIdsForCard(card, callback) {
+        if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
+            callback([]);
+            return;
+        }
+        var isTv = card.number_of_seasons || card.seasons || card.first_air_date;
+        var path = (isTv ? 'tv' : 'movie') + '/' + card.id + '/watch/providers';
+        Lampa.Api.sources.tmdb.get(path, {}, function (json) {
+            var ids = [];
+            if (json && json.results && json.results[WATCH_REGION]) {
+                var flat = json.results[WATCH_REGION].flatrate;
+                if (flat && flat.length) {
+                    flat.forEach(function (p) { if (p.provider_id) ids.push(p.provider_id); });
+                }
+            }
+            callback(ids);
+        }, function () { callback([]); });
+    }
+
+    function filterCardsByProvider(cards, providerIds, done) {
+        if (!providerIds || providerIds.length === 0) {
+            done(cards);
+            return;
+        }
+        if (!cards.length) {
+            done([]);
+            return;
+        }
+        var out = [];
+        var index = 0;
+
+        function checkNext() {
+            if (index >= cards.length) {
+                done(out);
+                return;
+            }
+            var batch = cards.slice(index, index + FILTER_BATCH_SIZE);
+            index += FILTER_BATCH_SIZE;
+            var pending = batch.length;
+            batch.forEach(function (card) {
+                getProviderIdsForCard(card, function (ids) {
+                    var has = ids.some(function (id) { return providerIds.indexOf(id) !== -1; });
+                    if (has) out.push(card);
+                    pending--;
+                    if (pending === 0) checkNext();
+                });
+            });
+        }
+        checkNext();
+    }
 
     function getContinueWatching() {
         if (!Lampa.Favorite || !Lampa.Favorite.get) return [];
@@ -195,31 +256,49 @@
         var recommendationsDone = false;
         var recommendationsResults = [];
         var staticDone = false;
+        var continueDone = false;
+        var continueRow = null;
+        var providerIds = config.provider_ids || [];
 
         comp.create = function () {
             var _this = this;
             this.activity.loader(true);
 
             var continueList = getContinueWatching();
-            var continueRow = null;
-            if (continueList.length) {
-                Lampa.Utils.extendItemsParams(continueList, { style: { name: 'wide' } });
-                continueRow = {
-                    title: Lampa.Lang.translate('streaming_continue'),
-                    results: continueList,
-                    url: null,
-                    params: null
-                };
+            if (continueList.length === 0) {
+                continueDone = true;
+                tryBuild();
+            } else {
+                filterCardsByProvider(continueList, providerIds, function (filtered) {
+                    if (filtered.length) {
+                        Lampa.Utils.extendItemsParams(filtered, { style: { name: 'wide' } });
+                        continueRow = {
+                            title: Lampa.Lang.translate('streaming_continue'),
+                            results: filtered,
+                            url: null,
+                            params: null
+                        };
+                    }
+                    continueDone = true;
+                    tryBuild();
+                });
             }
 
             fetchRecommendations(function (recList) {
-                recommendationsResults = recList;
-                recommendationsDone = true;
-                tryBuild();
+                if (recList.length === 0) {
+                    recommendationsDone = true;
+                    tryBuild();
+                    return;
+                }
+                filterCardsByProvider(recList, providerIds, function (filtered) {
+                    recommendationsResults = filtered;
+                    recommendationsDone = true;
+                    tryBuild();
+                });
             });
 
             function tryBuild() {
-                if (!recommendationsDone || !staticDone) return;
+                if (!continueDone || !recommendationsDone || !staticDone) return;
                 var fulldata = [];
                 if (continueRow) fulldata.push(continueRow);
                 if (recommendationsResults.length) {
