@@ -6,10 +6,12 @@
 
     var CDN = 'https://cdn.jsdelivr.net/gh/StinKaniff/lampa';
     // Commit hash — оновлюй після кожного push, щоб кеш не тримав старий файл
-    var STREAMING_MENU_COMMIT = '98a344f';
+    var STREAMING_MENU_COMMIT = '14ea553';
+    var TOP_SHELF_COMMIT = 'main'; // або хеш коміту після push
 
     var plugins = [
-        CDN + '@' + STREAMING_MENU_COMMIT + '/streaming/streaming-menu.js'
+        CDN + '@' + STREAMING_MENU_COMMIT + '/streaming/streaming-menu.js',
+        CDN + '@' + TOP_SHELF_COMMIT + '/topshelf/topshelf.js'
         // CDN + '/streaming/streaming_services.js'
         // CDN + '/інша-папка/плагін.js'
     ];
