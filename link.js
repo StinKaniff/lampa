@@ -4,12 +4,12 @@
     // Центральний файл посилань на плагіни з різних папок репо.
     // temp — папки з частинами/модулями плагінів; тут підключаються готові скрипти для Lampa.
 
-    var CDN = 'https://cdn.jsdelivr.net/gh/StinKaniff/lampa@main';
-    // Bump version when testing to bust cache (no git tags needed)
-    var STREAMING_MENU_VERSION = '0.0.2';
+    var CDN = 'https://cdn.jsdelivr.net/gh/StinKaniff/lampa';
+    // Commit hash — оновлюй після кожного push, щоб кеш не тримав старий файл
+    var STREAMING_MENU_COMMIT = '4296004';
 
     var plugins = [
-        CDN + '/streaming/streaming-menu.js?v=' + STREAMING_MENU_VERSION
+        CDN + '@' + STREAMING_MENU_COMMIT + '/streaming/streaming-menu.js'
         // CDN + '/streaming/streaming_services.js'
         // CDN + '/інша-папка/плагін.js'
     ];
