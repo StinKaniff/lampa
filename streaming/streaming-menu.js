@@ -37,7 +37,8 @@
         },
         hbo: {
             title: 'HBO',
-            provider_ids: [], // TMDB для UA часто без HBO у watch/providers — показуємо без фільтра
+            provider_ids: [],
+            network_ids: [49, 3186], // HBO, HBO Max — фільтр серіалів за мережею (релевантний контент)
             categories: [
                 { title: 'Нові серіали HBO/Max', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'HBO: Головні хіти', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc' } },
@@ -110,13 +111,22 @@
     var CONTINUE_MAX = 19;
     var FILTER_BATCH_SIZE = 5;
 
+    // Для блоку «Продовжити» / «Рекомендації» регіон не використовуємо — збираємо провайдерів з усіх регіонів
     function parseProviderIdsFromResponse(json) {
         var ids = [];
-        if (json && json.results && json.results[WATCH_REGION]) {
-            var flat = json.results[WATCH_REGION].flatrate;
-            if (flat && flat.length) {
-                flat.forEach(function (p) { if (p.provider_id) ids.push(p.provider_id); });
-            }
+        var seen = {};
+        if (json && json.results) {
+            Object.keys(json.results).forEach(function (region) {
+                var flat = json.results[region].flatrate;
+                if (flat && flat.length) {
+                    flat.forEach(function (p) {
+                        if (p.provider_id && !seen[p.provider_id]) {
+                            seen[p.provider_id] = true;
+                            ids.push(p.provider_id);
+                        }
+                    });
+                }
+            });
         }
         return ids;
     }
@@ -143,6 +153,55 @@
                 }, function () { callback(null); });
             }
         });
+    }
+
+    function getTvNetworkIds(card, callback) {
+        if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
+            callback(null);
+            return;
+        }
+        var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
+        if (!isTv) {
+            callback([]);
+            return;
+        }
+        Lampa.Api.sources.tmdb.get('tv/' + card.id, {}, function (json) {
+            var ids = [];
+            if (json && json.networks && json.networks.length) {
+                json.networks.forEach(function (n) { if (n.id) ids.push(n.id); });
+            }
+            callback(ids);
+        }, function () { callback(null); });
+    }
+
+    function filterCardsByTvNetwork(cards, networkIds, done) {
+        if (!networkIds || !networkIds.length || !cards.length) {
+            done(networkIds && networkIds.length ? [] : cards);
+            return;
+        }
+        var out = [];
+        var index = 0;
+        function checkNext() {
+            if (index >= cards.length) {
+                done(out);
+                return;
+            }
+            var batch = cards.slice(index, index + FILTER_BATCH_SIZE);
+            index += FILTER_BATCH_SIZE;
+            var pending = batch.length;
+            batch.forEach(function (card) {
+                getTvNetworkIds(card, function (ids) {
+                    if (ids === null) {
+                        out.push(card);
+                    } else if (ids.length && ids.some(function (id) { return networkIds.indexOf(id) !== -1; })) {
+                        out.push(card);
+                    }
+                    pending--;
+                    if (pending === 0) checkNext();
+                });
+            });
+        }
+        checkNext();
     }
 
     function filterCardsByProvider(cards, providerIds, done) {
@@ -278,6 +337,8 @@
         var continueDone = false;
         var continueRow = null;
         var providerIds = config.provider_ids || [];
+        var networkIds = config.network_ids || [];
+        var useNetworkFilter = networkIds.length > 0;
 
         comp.create = function () {
             var _this = this;
@@ -288,7 +349,10 @@
                 continueDone = true;
                 tryBuild();
             } else {
-                filterCardsByProvider(continueList, providerIds, function (filtered) {
+                var filterContinue = useNetworkFilter
+                    ? function (cb) { filterCardsByTvNetwork(continueList, networkIds, cb); }
+                    : function (cb) { filterCardsByProvider(continueList, providerIds, cb); };
+                filterContinue(function (filtered) {
                     if (filtered.length) {
                         Lampa.Utils.extendItemsParams(filtered, { style: { name: 'wide' } });
                         continueRow = {
@@ -309,7 +373,10 @@
                     tryBuild();
                     return;
                 }
-                filterCardsByProvider(recList, providerIds, function (filtered) {
+                var filterRec = useNetworkFilter
+                    ? function (cb) { filterCardsByTvNetwork(recList, networkIds, cb); }
+                    : function (cb) { filterCardsByProvider(recList, providerIds, cb); };
+                filterRec(function (filtered) {
                     recommendationsResults = filtered;
                     recommendationsDone = true;
                     tryBuild();
