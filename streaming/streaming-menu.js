@@ -388,7 +388,7 @@
                 tryBuild();
             } else {
                 filterCardsForService(continueList, config, function (filtered) {
-                    if (filtered.length) {
+                    if (filtered && filtered.length > 0) {
                         var toShow = filtered.slice(0, CONTINUE_MAX);
                         Lampa.Utils.extendItemsParams(toShow, { style: { name: 'wide' } });
                         continueRow = {
@@ -418,7 +418,7 @@
 
             function buildFullData() {
                 var fulldata = [];
-                if (continueRow) fulldata.push(continueRow);
+                if (continueRow && continueRow.results && continueRow.results.length > 0) fulldata.push(continueRow);
                 if (recommendationsResults.length) {
                     Lampa.Utils.extendItemsParams(recommendationsResults, { style: { name: 'wide' } });
                     fulldata.push({
