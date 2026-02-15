@@ -112,8 +112,7 @@
     var ICON_AMAZON = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M456 370c0 15-8 43-26 58-4 3-8 2-6-2 5-13 17-43 12-50-4-6-21-5-35-4l-17 2c-4 0-4-3 0-6 5-4 11-7 17-8 23-7 50-3 53 1 1 1 2 3 2 9Zm-38 26-17 11a294 294 0 0 1-343-37c-4-3-1-9 4-6a397 397 0 0 0 339 26l10-4c7-3 14 5 7 10ZM294 176c0-21 1-33-6-44-6-9-17-14-31-13-16 1-33 11-38 31-1 4-3 8-9 9l-48-6c-4-1-9-3-7-10 10-55 57-75 102-77h10c25 0 56 7 76 25 24 23 22 53 22 87v78c0 24 9 34 19 46 2 5 3 10-1 13l-38 34c-4 2-10 2-13 0-15-12-19-20-28-33-17 18-31 27-47 33-12 3-24 4-36 4-42 0-75-26-75-78 0-41 22-69 54-82s79-17 94-17m-9 104c10-18 9-32 9-64-13 0-26 1-37 3-21 6-38 20-38 48 0 21 12 36 31 36l7-1c13-3 21-10 28-22Z"/></svg>';
     var ICON_HULU = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M399 271v175h-92V292c0-13-11-25-24-25h-55c-14 0-25 12-25 25v154h-89V66h91v122c5-2 11-4 17-4h91c48 0 86 40 86 87Z"/></svg>';
     var ICON_PARAMOUNT = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M328 412c1-1 3-5 0-12l-9-24c-1-3 2-5 3-3 0 0 17 19 21 28l9 13 45 1-5-6c-32-40-53-62-53-62-6-7-9-9-14-11l-3-1v6l-1 1-47-84c-2-4-5-7-9-10l-5-3-22 52c3 0 6 4 4 7l-20 48h19c7 0 14 2 21 4l5 3s-15 31-15 47l1 9h35l-1-10s21 5 41 7ZM256 97A200 200 0 0 0 95 415c8-3 13-9 16-13l38-47 3-3 5-2 62-78 8-7 19-25 1-2 8-6a6 6 0 0 1 7 0l10 7c5 4 9 8 12 14l38 68 3 3c8 4 13 4 23 15 4 5 25 28 53 63 4 6 9 10 16 13A200 200 0 0 0 256 96ZM110 308l-13-5-8 11v-13l-13-4 13-5v-13l8 11 13-4-8 11 8 11Zm-3 44-4 13-5-13H85l11-8-4-13 11 8 11-8-5 13 11 8h-13Zm2-103 5 13-11-8-11 8 4-13-11-8h13l5-13 4 13h13l-11 8Zm22-29-8-11-13 4 8-11-8-11 13 4 8-11v14l13 4-13 4v14Zm34-48-4 13-4-13h-14l11-8-4-13 11 8 11-8-4 13 11 8h-14Zm43-22-8 11v-13l-13-5 13-4v-14l8 11 13-4-8 11 8 11-13-4Zm55-12 4 13-11-8-11 8 4-13-11-8h14l4-13 4 13h14l-11 8Zm49 10v13l-8-11-13 4 8-11-8-11 13 4 8-11v14l13 4-13 5Zm90 138 13 4 8-11v13l13 5-13 4v13l-8-11-13 5 8-11-8-11Zm-51-101-4-13h-14l11-8-4-13 11 8 11-8-4 13 11 8h-14l-4 13Zm30 35v-14l-13-4 13-4v-14l8 11 13-4-8 11 8 11-13-4-8 11Zm24 21 4-13 5 13h13l-11 8 4 13-11-8-11 8 5-13-11-8h13Zm9 111-5 13-4-13h-13l11-8-5-13 11 8 11-8-4 13 11 8h-13Zm-202-10 13-26-1-2-11 12c-5 5-14 20-16 23l-14 23a2 2 0 0 1 2 2l-12 21c-3 5 2 9 3 7 19-31 30-28 30-28l7-15-1-2c-2-1-5-5 0-15Z"/></svg>';
-    var ICON_SQR_PATH = 'm126 213 2 9 7 7 10 7a317 317 0 0 1 23 14l10 9 7 12 3 15v1c0 6-1 12-3 16-1 5-3 9-6 12l-8 8a50 50 0 0 1-22 8l-10 1h-1l-17-2-12-5a37 37 0 0 1-17-25l-1-8 1-7a13 13 0 0 1 9-7 20 20 0 0 1 17 2l5 5 1 7c0 5 2 9 4 11 3 2 6 3 11 3h6l5-3 3-5 1-8c0-4-1-7-3-10-1-4-4-6-7-9l-9-8a414 414 0 0 0-23-15l-10-9-7-10-2-13v-2c0-8 1-14 3-20 2-5 5-9 9-12 4-4 9-6 15-7l20-2h3l17 2 12 6 8 8a36 36 0 0 1 6 16v6a14 14 0 0 1-5 11l-5 3-7 1-5-1-5-3-3-4-2-4c0-6-1-10-3-13-2-2-5-3-10-3h-6l-5 2-3 4-1 9Zm71 5c0-7 1-13 3-18l8-13 11-8a57 57 0 0 1 22-6h10a93 93 0 0 1 16 2l12 4 11 8 7 13c3 5 4 11 4 18v67a52 52 0 0 1-8 27l12 10 2 4 1 5a12 12 0 0 1-3 9l-5 3h-4a13 13 0 0 1-9-3l-13-12a69 69 0 0 1-23 4h-4a99 99 0 0 1-17-2l-11-5c-4-2-8-4-11-8l-8-13c-2-5-3-11-3-19v-67Zm37 72 2 7 5 5c2 2 5 2 8 2 4 0 7 0 8-2a15 15 0 0 0 7-12v-74l-2-7-5-5-8-2-8 2-5 5-2 7v74Zm84-91v-9l2-8c1-3 2-5 5-6l9-2h38c9 0 17 2 24 6l9 5 8 8 6 12a50 50 0 0 1 2 20l-2 7-3 7a33 33 0 0 1-13 14l-10 4 8 4a29 29 0 0 1 12 16c2 4 2 8 2 13v16l1 2 1 2 4 5v3l-2 6-4 5-5 2a27 27 0 0 1-15 0l-6-4c-3-1-4-3-6-5l-2-8v-33l-3-7-5-5-9-2h-12v38l-1 10-2 8c-1 2-2 4-5 6l-10 2-9-2c-3-2-4-4-5-6l-2-8V199Zm49 43a23 23 0 0 0 14-5l3-4 2-5a27 27 0 0 0 0-14l-2-5-3-4-4-2c-2-2-6-2-9-3h-16v42h15Z';
-    var ICON_SQR = '<span class="menu__ico" data-sqr-icon="1" style="color:inherit;display:inline-flex"><svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512" style="color:inherit;fill:currentColor"><path style="fill:currentColor" fill="currentColor" d="' + ICON_SQR_PATH + '"/></svg></span>';
+    var ICON_SQR = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><defs><clipPath id="sqr-clip"><path fill="#fff" d="M0 0h512v512H0z"/></clipPath></defs><g clip-path="url(#sqr-clip)"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="42.667" d="M386.371 362.667V256m-104.297 80 26.074 26.667M21.333 336c0 7.073 2.748 13.855 7.637 18.856 4.89 5.001 11.522 7.811 18.438 7.811h52.148c6.915 0 13.547-2.81 18.437-7.811 4.89-5.001 7.637-11.783 7.637-18.856v-53.333c0-7.073-2.747-13.855-7.637-18.856-4.89-5.001-11.522-7.811-18.437-7.811H47.408c-6.916 0-13.548-2.809-18.438-7.81-4.89-5.001-7.636-11.784-7.636-18.857V176c0-7.072 2.747-13.855 7.636-18.856 4.89-5.001 11.522-7.811 18.438-7.811h52.148c6.915 0 13.547 2.81 18.437 7.811 4.89 5.001 7.637 11.784 7.637 18.856m260.741 80V149.333h78.222c6.915 0 13.547 2.81 18.437 7.811 4.89 5.001 7.637 11.784 7.637 18.856v53.333c0 7.073-2.747 13.856-7.637 18.857-4.89 5.001-11.522 7.81-18.437 7.81h-78.222Zm52.148 0 52.148 106.667M256 149.333c13.831 0 27.095 5.62 36.874 15.621 9.78 10.002 15.274 23.568 15.274 37.713v106.666c0 14.145-5.494 27.711-15.274 37.713-9.779 10.002-23.043 15.621-36.874 15.621-13.83 0-27.094-5.619-36.874-15.621-9.78-10.002-15.274-23.568-15.274-37.713V202.667c0-14.145 5.494-27.711 15.274-37.713 9.78-10.001 23.044-15.621 36.874-15.621Z"/></g></svg>';
     var SERVICE_ICONS = {
         netflix: ICON_NETFLIX,
         apple: ICON_APPLE,
@@ -570,33 +569,7 @@
         if (serviceIds.length) addNext();
     }
 
-    function injectSqrIconFocusStyle() {
-        var id = 'sqr-icon-focus-style';
-        if (document.getElementById(id)) return;
-        var style = document.createElement('style');
-        style.id = id;
-        style.textContent = '.selector.focus .menu__ico,.selector.focus .menu__ico svg,.selector.focus .menu__ico path,.selector--focus .menu__ico,.selector--focus .menu__ico path,.settings__item.focus .menu__ico,.settings__item.focus .menu__ico path{color:inherit!important;fill:currentColor!important}';
-        (document.head || document.documentElement).appendChild(style);
-    }
-
-    function syncSqrIconFocusColor() {
-        var icons = document.querySelectorAll('.menu__ico[data-sqr-icon="1"]');
-        for (var i = 0; i < icons.length; i++) {
-            var ico = icons[i];
-            var row = ico.closest('.selector') || ico.closest('[data-component="sqr"]') || ico.parentElement;
-            if (!row) continue;
-            var textEl = row.querySelector('.menu__text') || row.querySelector('.settings__name');
-            var color = (textEl && getComputedStyle(textEl).color) || (getComputedStyle(row).color);
-            if (color && color !== 'rgba(0, 0, 0, 0)') {
-                ico.style.color = color;
-                var inner = ico.querySelectorAll('svg, path');
-                for (var j = 0; j < inner.length; j++) inner[j].style.fill = color;
-            }
-        }
-    }
-
     function init() {
-        injectSqrIconFocusStyle();
         Lampa.Component.add('streaming_main', StreamingMain);
         Lampa.Component.add('streaming_view', StreamingView);
         addStreamingMenuItems();
@@ -607,7 +580,6 @@
                 name: Lampa.Lang.translate('sqr_settings_title'),
                 icon: ICON_SQR
             });
-            setInterval(syncSqrIconFocusColor, 400);
             Object.keys(SERVICE_CONFIGS).forEach(function (sid) {
                 var config = SERVICE_CONFIGS[sid];
                 var storageKey = SQR_STORAGE_PREFIX + sid;
