@@ -27,9 +27,9 @@
             title: 'Netflix',
             filterCards: function (cards, done) { filterCardsByProvider(cards, [8], done); },
             categories: [
+                { title: 'В тренді на Netflix', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc' } },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
-                { title: 'В тренді на Netflix', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc' } },
                 { title: 'Екшн та блокбастери', url: 'discover/movie', params: { with_companies: '213', with_genres: '28,12', sort_by: 'popularity.desc' } },
                 { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
                 { title: 'Кримінальні драми', url: 'discover/tv', params: { with_networks: '213', with_genres: '80', sort_by: 'popularity.desc' } },
@@ -368,22 +368,30 @@
             return comp;
         }
         var categories = config.categories;
-        var network = new Lampa.Reguest();
-        var status = new Lampa.Status(categories.length);
-        var staticDone = false;
-        var continueDone = false;
-        var continueRow = null;
 
         comp.create = function () {
             var _this = this;
+            var sessionId = Date.now();
+            comp._streamingSessionId = sessionId;
+            var network = new Lampa.Reguest();
+            var status = new Lampa.Status(categories.length);
+            var staticDone = false;
+            var continueDone = false;
+            var continueRow = null;
             this.activity.loader(true);
 
-            // Після «Продовжити перегляд» завантажуємо рядки категорій
+            function isStale() { return comp._streamingSessionId !== sessionId; }
+
             function startRest() {
+                if (isStale()) return;
                 categories.forEach(function (cat, index) {
                     network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
+                        if (isStale()) return;
                         status.append(String(index), json);
-                    }, function () { status.error(); });
+                    }, function () {
+                        if (isStale()) return;
+                        status.error();
+                    });
                 });
             }
 
@@ -394,6 +402,7 @@
                 tryBuild();
             } else {
                 config.filterCards(continueList, function (filtered) {
+                    if (isStale()) return;
                     if (filtered && filtered.length > 0) {
                         var toShow = filtered.slice(0, CONTINUE_MAX);
                         Lampa.Utils.extendItemsParams(toShow, { style: { name: 'wide' } });
@@ -430,6 +439,7 @@
             }
 
             function tryBuild() {
+                if (isStale()) return;
                 if (!continueDone || !staticDone) return;
                 var fulldata = buildFullData();
                 if (fulldata.length) {
@@ -441,6 +451,7 @@
             }
 
             status.onComplite = function () {
+                if (isStale()) return;
                 staticDone = true;
                 tryBuild();
             };
