@@ -506,37 +506,61 @@
         return comp;
     }
 
-    // У меню — одразу пункти для кожного увімкненого стрімінгу (без кліку «Стрімінги → вибір»).
-    // Клік по Netflix / Apple TV+ тощо відкриває сторінку стрімінгу з фільтрацією.
+    // Один пункт меню для одного стрімінгу. Виклик окремо для кожного — щоб меню не було пустим і відображалось вірно.
+    var MENU_ANCHOR = '[data-action="catalog"]';
+    var MENU_ANCHOR_FALLBACK = '[data-action="tv"]';
+    var MENU_ITEM_DELAY_MS = 150;
+
+    function addOneStreamingMenuItem(sid, insertAfter) {
+        var config = SERVICE_CONFIGS[sid];
+        if (!config) return insertAfter;
+        var title = config.title;
+        var icon = SERVICE_ICONS[sid] || ICON_NETFLIX;
+        var dataAction = 'streaming_menu_' + sid;
+        var itemHtml = $(
+            '<li class="menu__item selector" data-action="' + dataAction + '">' +
+            '  <div class="menu__ico">' + icon + '</div>' +
+            '  <div class="menu__text">' + title + '</div>' +
+            '</li>'
+        );
+        itemHtml.on('hover:enter', function () {
+            Lampa.Activity.push({
+                component: 'streaming_main',
+                service_id: sid,
+                title: title,
+                page: 1
+            });
+        });
+        if (insertAfter && insertAfter.length) insertAfter.after(itemHtml);
+        return itemHtml;
+    }
+
     function addStreamingMenuItems() {
         var menu = Lampa.Menu.render();
         if (!menu || !menu.length) return;
-        var afterItem = menu.find('[data-action="catalog"]').length ? menu.find('[data-action="catalog"]') : menu.find('[data-action="tv"]');
-        var insertAfter = afterItem.length ? afterItem : menu.find('.menu__item').last();
+        var insertAfter = menu.find(MENU_ANCHOR).length ? menu.find(MENU_ANCHOR) : menu.find(MENU_ANCHOR_FALLBACK);
+        if (!insertAfter.length) insertAfter = menu.find('.menu__item').last();
 
-        Object.keys(SERVICE_CONFIGS).forEach(function (sid) {
-            if (!isAfterplayServiceEnabled(sid)) return;
-            var config = SERVICE_CONFIGS[sid];
-            var title = config.title;
-            var icon = SERVICE_ICONS[sid] || ICON_NETFLIX;
-            var dataAction = 'streaming_menu_' + sid;
-            var itemHtml = $(
-                '<li class="menu__item selector" data-action="' + dataAction + '">' +
-                '  <div class="menu__ico">' + icon + '</div>' +
-                '  <div class="menu__text">' + title + '</div>' +
-                '</li>'
-            );
-            itemHtml.on('hover:enter', function () {
-                Lampa.Activity.push({
-                    component: 'streaming_main',
-                    service_id: sid,
-                    title: title,
-                    page: 1
-                });
-            });
-            insertAfter.after(itemHtml);
-            insertAfter = itemHtml;
-        });
+        var serviceIds = Object.keys(SERVICE_CONFIGS).filter(function (sid) { return isAfterplayServiceEnabled(sid); });
+        var index = 0;
+
+        function addNext() {
+            if (index >= serviceIds.length) return;
+            var sid = serviceIds[index];
+            index += 1;
+            var menuNow = Lampa.Menu.render();
+            var anchor = menuNow.find(MENU_ANCHOR).length ? menuNow.find(MENU_ANCHOR) : menuNow.find(MENU_ANCHOR_FALLBACK);
+            if (!anchor.length) anchor = menuNow.find('.menu__item').last();
+            // Після першого пункту вставляємо після попереднього стрімінгу
+            if (index > 1) {
+                var prev = menuNow.find('[data-action="streaming_menu_' + serviceIds[index - 2] + '"]');
+                if (prev.length) anchor = prev;
+            }
+            addOneStreamingMenuItem(sid, anchor);
+            if (index < serviceIds.length) setTimeout(addNext, MENU_ITEM_DELAY_MS);
+        }
+
+        if (serviceIds.length) addNext();
     }
 
     function init() {
