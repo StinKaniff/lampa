@@ -65,7 +65,7 @@
         },
         amazon: {
             title: 'Prime Video',
-            filter: { type: 'provider', ids: [119] },
+            filter: { type: 'provider_and_network', provider_ids: [119], network_ids: [1024] }, // серіали — мережа 1024, фільми — провайдер 119
             categories: [
                 { title: 'В тренді на Prime Video', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc' } },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '119', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -247,9 +247,7 @@
             var pending = batch.length;
             batch.forEach(function (card) {
                 getTvNetworkIds(card, function (ids) {
-                    if (ids === null) {
-                        out.push(card);
-                    } else if (ids.length && ids.some(function (id) { return networkIds.indexOf(id) !== -1; })) {
+                    if (ids !== null && ids.length && ids.some(function (id) { return networkIds.indexOf(id) !== -1; })) {
                         out.push(card);
                     }
                     pending--;
@@ -282,9 +280,7 @@
             var pending = batch.length;
             batch.forEach(function (card) {
                 getProviderIdsForCard(card, function (ids) {
-                    if (ids === null) {
-                        out.push(card);
-                    } else if (ids.length && ids.some(function (id) { return providerIds.indexOf(id) !== -1; })) {
+                    if (ids !== null && ids.length && ids.some(function (id) { return providerIds.indexOf(id) !== -1; })) {
                         out.push(card);
                     }
                     pending--;
@@ -295,9 +291,63 @@
         checkNext();
     }
 
+    // Prime Video: серіали — за мережею 1024, фільми — за провайдером 119 (watch/providers ненадійний для всього)
+    function filterCardsByProviderAndNetwork(cards, providerIds, networkIds, done) {
+        if (!cards.length) {
+            done([]);
+            return;
+        }
+        var out = [];
+        var index = 0;
+        function checkNext() {
+            if (index >= cards.length) {
+                done(out);
+                return;
+            }
+            var batch = cards.slice(index, index + FILTER_BATCH_SIZE);
+            index += FILTER_BATCH_SIZE;
+            var pending = batch.length;
+            batch.forEach(function (card) {
+                var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
+                if (isTv) {
+                    getTvNetworkIds(card, function (ids) {
+                        if (ids !== null && ids.length && ids.some(function (id) { return networkIds.indexOf(id) !== -1; })) {
+                            out.push(card);
+                        }
+                        pending--;
+                        if (pending === 0) checkNext();
+                    });
+                } else {
+                    getProviderIdsForCard(card, function (ids) {
+                        if (ids !== null && ids.length && ids.some(function (id) { return providerIds.indexOf(id) !== -1; })) {
+                            out.push(card);
+                        }
+                        pending--;
+                        if (pending === 0) checkNext();
+                    });
+                }
+            });
+        }
+        checkNext();
+    }
+
     function filterCardsForService(cards, config, done) {
         var filter = config.filter;
-        if (!filter || !filter.ids || !filter.ids.length) {
+        if (!filter) {
+            done(cards);
+            return;
+        }
+        if (filter.type === 'provider_and_network') {
+            var pids = filter.provider_ids || [];
+            var nids = filter.network_ids || [];
+            if (pids.length || nids.length) {
+                filterCardsByProviderAndNetwork(cards, pids, nids, done);
+            } else {
+                done([]);
+            }
+            return;
+        }
+        if (!filter.ids || !filter.ids.length) {
             done(cards);
             return;
         }
