@@ -37,7 +37,7 @@
         },
         hbo: {
             title: 'HBO',
-            provider_ids: [384], // 384 = HBO Max (watch provider); 49 — мережа, не провайдер
+            provider_ids: [], // TMDB для UA часто без HBO у watch/providers — показуємо без фільтра
             categories: [
                 { title: 'Нові серіали HBO/Max', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'HBO: Головні хіти', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc' } },
