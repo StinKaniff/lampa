@@ -154,13 +154,9 @@
         streaming_menu_title: { ru: 'Стриминги', en: 'Streaming', uk: 'Стрімінги' },
         streaming_menu_panel_title: { ru: 'Выбор стриминговых сервисов', en: 'Choose streaming services', uk: 'Вибір стрімінгових сервісів' },
         sqr_streaming_chooser_title: { ru: 'Вибір стримингов', en: 'Choose streamings', uk: 'Вибір стримінгів' },
-        streaming_continue: { ru: 'Продолжить просмотр', en: 'Continue watching', uk: 'Продовжити перегляд' },
         sqr_settings_title: { ru: 'SQR', en: 'SQR', uk: 'SQR' }
     });
 
-    // Ліміти: продовжити перегляд, батч фільтра
-    var CONTINUE_MAX = 19;           // скільки показувати в рядку «Продовжити перегляд»
-    var CONTINUE_FETCH_MAX = 60;     // скільки брати з історії перед фільтром (щоб після фільтра по сервісу лишалось достатньо)
     var FILTER_BATCH_SIZE = 5;
 
     // Для блоку «Продовжити» / «Рекомендації» регіон не використовуємо — збираємо провайдерів з усіх регіонів
@@ -327,19 +323,6 @@
         checkNext();
     }
 
-    function getContinueWatching() {
-        if (!Lampa.Favorite || !Lampa.Favorite.get) return [];
-        var history = Lampa.Favorite.get({ type: 'history' });
-        var viewed = Lampa.Favorite.get({ type: 'viewed' }) || [];
-        var thrown = Lampa.Favorite.get({ type: 'thrown' }) || [];
-        var viewedIds = viewed.map(function (c) { return c.id; });
-        var thrownIds = thrown.map(function (c) { return c.id; });
-        var list = history.filter(function (e) {
-            return viewedIds.indexOf(e.id) === -1 && thrownIds.indexOf(e.id) === -1;
-        });
-        return list.slice(0, CONTINUE_FETCH_MAX);
-    }
-
     function getCurrentDate() {
         var d = new Date();
         return [d.getFullYear(), ('0' + (d.getMonth() + 1)).slice(-2), ('0' + d.getDate()).slice(-2)].join('-');
@@ -376,8 +359,6 @@
             var network = new Lampa.Reguest();
             var status = new Lampa.Status(categories.length);
             var staticDone = false;
-            var continueDone = false;
-            var continueRow = null;
             this.activity.loader(true);
 
             function isStale() { return comp._streamingSessionId !== sessionId; }
@@ -395,33 +376,11 @@
                 });
             }
 
-            var continueList = getContinueWatching();
-            if (continueList.length === 0) {
-                continueDone = true;
-                startRest();
-                tryBuild();
-            } else {
-                config.filterCards(continueList, function (filtered) {
-                    if (isStale()) return;
-                    if (filtered && filtered.length > 0) {
-                        var toShow = filtered.slice(0, CONTINUE_MAX);
-                        Lampa.Utils.extendItemsParams(toShow, { style: { name: 'wide' } });
-                        continueRow = {
-                            title: Lampa.Lang.translate('streaming_continue'),
-                            results: toShow,
-                            url: null,
-                            params: null
-                        };
-                    }
-                    continueDone = true;
-                    startRest();
-                    tryBuild();
-                });
-            }
+            startRest();
+            tryBuild();
 
             function buildFullData() {
                 var fulldata = [];
-                if (continueRow && continueRow.results && continueRow.results.length > 0) fulldata.push(continueRow);
                 Object.keys(status.data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
                     var data = status.data[key];
                     if (data && data.results && data.results.length) {
@@ -440,7 +399,7 @@
 
             function tryBuild() {
                 if (isStale()) return;
-                if (!continueDone || !staticDone) return;
+                if (!staticDone) return;
                 var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
