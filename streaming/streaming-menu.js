@@ -119,19 +119,14 @@
             provider_ids: [],
             network_ids: [43, 1043], // National Geographic, Nat Geo Wild
             categories: [
-                { title: 'National Geographic — Усе', url: 'discover/tv', params: { with_networks: '43', with_genres: '99', sort_by: 'popularity.desc' } },
-                { title: 'Nat Geo Wild — Дика природа', url: 'discover/tv', params: { with_networks: '1043', with_genres: '99', sort_by: 'popularity.desc' } },
-                { title: 'Дика природа та тварини', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', with_keywords: '6054|159823|207268|4344', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } },
-                { title: 'Океан та підводний світ', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', with_keywords: '9715|155635|179431|287693', sort_by: 'vote_average.desc', 'vote_count.gte': '30' } },
-                { title: 'Космос та всесвіт', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', with_keywords: '9951|4379|170362|191378', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } },
-                { title: 'Наука та дослідження', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', with_keywords: '4719|14560|6149|162365', sort_by: 'popularity.desc' } },
-                { title: 'Людина та культури', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', with_keywords: '9840|162791|4152|287693', sort_by: 'vote_average.desc', 'vote_count.gte': '30' } },
-                { title: 'Історія та археологія', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', with_keywords: '9715|10676|158716|190859', sort_by: 'vote_average.desc', 'vote_count.gte': '40' } },
-                { title: 'Планета Земля та клімат', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', with_keywords: '159823|208510|15270|162951', sort_by: 'popularity.desc' } },
-                { title: 'Виживання та екстрим', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', with_keywords: '9840|161176|178110|4344', sort_by: 'popularity.desc' } },
-                { title: 'Вибір критиків — Топ Nat Geo', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '200', 'vote_average.gte': '7.5' } },
-                { title: 'Нові документальні (2023+)', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'first_air_date.desc', 'first_air_date.gte': '2023-01-01' } },
-                { title: 'Класика Nat Geo', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_count.desc', 'vote_count.gte': '100', 'first_air_date.lte': '2020-12-31' } }
+                { title: 'Новинки', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'first_air_date.desc', 'vote_count.gte': '5' } },
+                { title: 'Космос', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } },
+                { title: 'Дика природа', url: 'discover/tv', params: { with_networks: '1043', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Природа', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Наука', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '30' } },
+                { title: 'National Geographic', url: 'discover/tv', params: { with_networks: '43', sort_by: 'popularity.desc' } },
+                { title: 'Найкраще за рейтингом', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '100' } },
+                { title: 'Свіжий контент (2023+)', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'first_air_date.desc', 'first_air_date.gte': '2023-01-01' } }
             ]
         }
     };
