@@ -21,12 +21,11 @@
         };
     }
 
-    // Фільтр для «Продовжити перегляд» і «Рекомендації» — окремо для кожного сервісу.
-    // type: 'provider' — фільтр за watch_providers (доступно на стрімінгу в UA), type: 'network' — за TV-мережею.
+    // Кожен сервіс — окремий «плагін»: своя filterCards(cards, done), лише свій контент у «Продовжити перегляд».
     var SERVICE_CONFIGS = {
         netflix: {
             title: 'Netflix',
-            filter: { type: 'provider', ids: [8] },
+            filterCards: function (cards, done) { filterCardsByProvider(cards, [8], done); },
             categories: [
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -41,7 +40,7 @@
         },
         apple: {
             title: 'Apple TV+',
-            filter: { type: 'provider', ids: [350] },
+            filterCards: function (cards, done) { filterCardsByProvider(cards, [350], done); },
             categories: [
                 catNewMoviesProvider(350),
                 catNewTvProvider(350),
@@ -54,7 +53,7 @@
         },
         hbo: {
             title: 'HBO',
-            filter: { type: 'network', ids: [49, 3186] }, // HBO, HBO Max
+            filterCards: function (cards, done) { filterCardsByTvNetwork(cards, [49, 3186], done); },
             categories: [
                 { title: 'Нові серіали HBO/Max', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'HBO: Головні хіти', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc' } },
@@ -65,7 +64,7 @@
         },
         amazon: {
             title: 'Prime Video',
-            filter: { type: 'provider_and_network', provider_ids: [119], network_ids: [1024] }, // серіали — мережа 1024, фільми — провайдер 119
+            filterCards: function (cards, done) { filterCardsByProviderAndNetwork(cards, [119], [1024], done); },
             categories: [
                 { title: 'В тренді на Prime Video', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc' } },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '119', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -76,7 +75,7 @@
         },
         disney: {
             title: 'Disney+',
-            filter: { type: 'provider', ids: [337] },
+            filterCards: function (cards, done) { filterCardsByProvider(cards, [337], done); },
             categories: [
                 catNewMoviesProvider(337, 'Нові фільми на Disney+'),
                 catNewTvProvider(337, 'Нові серіали на Disney+'),
@@ -88,7 +87,7 @@
         },
         hulu: {
             title: 'Hulu',
-            filter: { type: 'provider', ids: [453] },
+            filterCards: function (cards, done) { filterCardsByProvider(cards, [453], done); },
             categories: [
                 { title: 'Hulu Originals: У тренді', url: 'discover/tv', params: { with_networks: '453', sort_by: 'popularity.desc' } },
                 { title: 'Драми та трилери', url: 'discover/tv', params: { with_networks: '453', with_genres: '18,9648', sort_by: 'vote_average.desc' } },
@@ -97,7 +96,7 @@
         },
         paramount: {
             title: 'Paramount+',
-            filter: { type: 'provider', ids: [531] },
+            filterCards: function (cards, done) { filterCardsByProvider(cards, [531], done); },
             categories: [
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
                 { title: 'Блокбастери Paramount', url: 'discover/movie', params: { with_companies: '4', sort_by: 'revenue.desc' } },
@@ -106,7 +105,7 @@
         },
         origin: {
             title: 'National Geographic',
-            filter: { type: 'network', ids: [43, 1043] }, // National Geographic, Nat Geo Wild
+            filterCards: function (cards, done) { filterCardsByTvNetwork(cards, [43, 1043], done); },
             categories: [
                 { title: 'Новинки', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'first_air_date.desc', 'vote_count.gte': '5' } },
                 { title: 'Космос', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } },
@@ -328,33 +327,6 @@
         checkNext();
     }
 
-    function filterCardsForService(cards, config, done) {
-        var filter = config.filter;
-        if (!filter) {
-            done(cards);
-            return;
-        }
-        if (filter.type === 'provider_and_network') {
-            var pids = filter.provider_ids || [];
-            var nids = filter.network_ids || [];
-            if (pids.length || nids.length) {
-                filterCardsByProviderAndNetwork(cards, pids, nids, done);
-            } else {
-                done([]);
-            }
-            return;
-        }
-        if (!filter.ids || !filter.ids.length) {
-            done(cards);
-            return;
-        }
-        if (filter.type === 'network') {
-            filterCardsByTvNetwork(cards, filter.ids, done);
-        } else {
-            filterCardsByProvider(cards, filter.ids, done);
-        }
-    }
-
     function getContinueWatching() {
         if (!Lampa.Favorite || !Lampa.Favorite.get) return [];
         var history = Lampa.Favorite.get({ type: 'history' });
@@ -421,7 +393,7 @@
                 startRest();
                 tryBuild();
             } else {
-                filterCardsForService(continueList, config, function (filtered) {
+                config.filterCards(continueList, function (filtered) {
                     if (filtered && filtered.length > 0) {
                         var toShow = filtered.slice(0, CONTINUE_MAX);
                         Lampa.Utils.extendItemsParams(toShow, { style: { name: 'wide' } });
