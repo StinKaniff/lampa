@@ -156,13 +156,10 @@
         streaming_menu_panel_title: { ru: 'Выбор стриминговых сервисов', en: 'Choose streaming services', uk: 'Вибір стрімінгових сервісів' },
         sqr_streaming_chooser_title: { ru: 'Вибір стримингов', en: 'Choose streamings', uk: 'Вибір стримінгів' },
         streaming_continue: { ru: 'Продолжить просмотр', en: 'Continue watching', uk: 'Продовжити перегляд' },
-        streaming_recommend: { ru: 'Рекомендации для вас', en: 'Recommendations for you', uk: 'Рекомендації для вас' },
         sqr_settings_title: { ru: 'SQR', en: 'SQR', uk: 'SQR' }
     });
 
-    // Ліміти: джерела для рекомендацій, макс. карток (до фільтра за сервісом), продовжити, батч фільтра
-    var RECOMMEND_SOURCE_IDS = 8;
-    var RECOMMEND_MAX_RESULTS = 50;
+    // Ліміти: продовжити перегляд, батч фільтра
     var CONTINUE_MAX = 19;           // скільки показувати в рядку «Продовжити перегляд»
     var CONTINUE_FETCH_MAX = 60;     // скільки брати з історії перед фільтром (щоб після фільтра по сервісу лишалось достатньо)
     var FILTER_BATCH_SIZE = 5;
@@ -371,54 +368,6 @@
         return list.slice(0, CONTINUE_FETCH_MAX);
     }
 
-    function fetchRecommendations(done) {
-        if (!Lampa.Favorite || !Lampa.Favorite.get || !Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
-            done([]);
-            return;
-        }
-        var history = Lampa.Favorite.get({ type: 'history' });
-        var fromHistory = history.filter(function (e) { return e && (e.source === 'tmdb' || e.source === 'cub'); });
-        var toFetch = fromHistory.slice(0, RECOMMEND_SOURCE_IDS);
-        if (!toFetch.length) {
-            done([]);
-            return;
-        }
-        var historyIds = {};
-        history.forEach(function (e) { historyIds[e.id] = true; });
-        var collected = [];
-        var pending = toFetch.length;
-        var currentYear = new Date().getFullYear();
-
-        function onOne() {
-            pending--;
-            if (pending === 0) {
-                var seen = {};
-                var out = [];
-                for (var i = 0; i < collected.length && out.length < RECOMMEND_MAX_RESULTS; i++) {
-                    var r = collected[i];
-                    var id = r.id;
-                    if (seen[id] || historyIds[id]) continue;
-                    var year = (r.first_air_date || r.release_date || '0000').split('-')[0];
-                    if (parseInt(year, 10) < currentYear - 20) continue;
-                    seen[id] = true;
-                    out.push(r);
-                }
-                done(out);
-            }
-        }
-
-        toFetch.forEach(function (elem) {
-            var isTv = elem.number_of_seasons || elem.seasons || elem.first_air_date;
-            var path = (isTv ? 'tv' : 'movie') + '/' + elem.id + '/recommendations';
-            Lampa.Api.sources.tmdb.get(path, {}, function (json) {
-                if (json && json.results && json.results.length) {
-                    collected = collected.concat(json.results);
-                }
-                onOne();
-            }, onOne);
-        });
-    }
-
     function getCurrentDate() {
         var d = new Date();
         return [d.getFullYear(), ('0' + (d.getMonth() + 1)).slice(-2), ('0' + d.getDate()).slice(-2)].join('-');
@@ -449,8 +398,6 @@
         var categories = config.categories;
         var network = new Lampa.Reguest();
         var status = new Lampa.Status(categories.length);
-        var recommendationsDone = false;
-        var recommendationsResults = [];
         var staticDone = false;
         var continueDone = false;
         var continueRow = null;
@@ -459,20 +406,8 @@
             var _this = this;
             this.activity.loader(true);
 
-            // Спочатку завантажуємо історію перегляду і фільтруємо по джерелу/стримінгу; якщо нічого не підходить — блок не показуємо
+            // Після «Продовжити перегляд» завантажуємо рядки категорій
             function startRest() {
-                fetchRecommendations(function (recList) {
-                    if (recList.length === 0) {
-                        recommendationsDone = true;
-                        tryBuild();
-                        return;
-                    }
-                    filterCardsForService(recList, config, function (filtered) {
-                        recommendationsResults = filtered || [];
-                        recommendationsDone = true;
-                        tryBuild();
-                    });
-                });
                 categories.forEach(function (cat, index) {
                     network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
                         status.append(String(index), json);
@@ -506,15 +441,6 @@
             function buildFullData() {
                 var fulldata = [];
                 if (continueRow && continueRow.results && continueRow.results.length > 0) fulldata.push(continueRow);
-                if (recommendationsResults.length) {
-                    Lampa.Utils.extendItemsParams(recommendationsResults, { style: { name: 'wide' } });
-                    fulldata.push({
-                        title: Lampa.Lang.translate('streaming_recommend'),
-                        results: recommendationsResults,
-                        url: null,
-                        params: null
-                    });
-                }
                 Object.keys(status.data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
                     var data = status.data[key];
                     if (data && data.results && data.results.length) {
@@ -532,7 +458,7 @@
             }
 
             function tryBuild() {
-                if (!continueDone || !recommendationsDone || !staticDone) return;
+                if (!continueDone || !staticDone) return;
                 var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
