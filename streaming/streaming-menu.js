@@ -119,9 +119,9 @@
         streaming_recommend: { ru: 'Рекомендации для вас', en: 'Recommendations for you', uk: 'Рекомендації для вас' }
     });
 
-    // Ліміти: джерела для рекомендацій, макс. карток, продовжити, батч фільтра
-    var RECOMMEND_SOURCE_IDS = 5;
-    var RECOMMEND_MAX_RESULTS = 20;
+    // Ліміти: джерела для рекомендацій, макс. карток (до фільтра за сервісом), продовжити, батч фільтра
+    var RECOMMEND_SOURCE_IDS = 8;
+    var RECOMMEND_MAX_RESULTS = 50;
     var CONTINUE_MAX = 19;
     var FILTER_BATCH_SIZE = 5;
 
