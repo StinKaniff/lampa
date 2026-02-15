@@ -489,6 +489,81 @@
         return comp;
     }
 
+    // Список стрімінгових сервісів у основному контенті (замість оверлею)
+    function StreamingServicesList(object) {
+        var scroll = new Lampa.Scroll({ horizontal: false, step: 250 });
+        var html = $('<div class="category-items"><div class="category-items__title">' + Lampa.Lang.translate('streaming_menu_panel_title') + '</div><div class="category-items__cards streaming-services-list"></div></div>');
+        var cardsContainer = html.find('.streaming-services-list');
+        var items = [];
+
+        this.create = function () {
+            if (this.activity && this.activity.loader) this.activity.loader(true);
+            var serviceIds = Object.keys(SERVICE_CONFIGS).filter(function (sid) { return isAfterplayServiceEnabled(sid); });
+            serviceIds.forEach(function (sid) {
+                var config = SERVICE_CONFIGS[sid];
+                var icon = SERVICE_ICONS[sid] || ICON_NETFLIX;
+                var tile = $(
+                    '<div class="card selector card--category streaming-service-tile">' +
+                    '  <div class="card__view">' +
+                    '    <div class="streaming-service-tile__icon">' + icon + '</div>' +
+                    '    <div class="streaming-service-tile__title">' + (config ? config.title : sid) + '</div>' +
+                    '  </div>' +
+                    '</div>'
+                );
+                tile.on('hover:enter', function () {
+                    Lampa.Activity.push({
+                        component: 'streaming_main',
+                        service_id: sid,
+                        title: config ? config.title : sid,
+                        page: 1
+                    });
+                });
+                cardsContainer.append(tile);
+                items.push(tile);
+            });
+            scroll.append(html);
+            if (this.activity && this.activity.loader) this.activity.loader(false);
+            return this.render();
+        };
+
+        this.start = function () {
+            Lampa.Controller.add('content', {
+                toggle: function () {
+                    Lampa.Controller.collectionSet(scroll.render());
+                    Lampa.Controller.collectionFocus(false, scroll.render());
+                },
+                left: function () {
+                    if (typeof Navigator !== 'undefined' && Navigator.canmove('left')) Navigator.move('left');
+                    else Lampa.Controller.toggle('menu');
+                },
+                up: function () {
+                    if (typeof Navigator !== 'undefined' && Navigator.canmove('up')) Navigator.move('up');
+                    else Lampa.Controller.toggle('head');
+                },
+                down: function () {
+                    if (typeof Navigator !== 'undefined') Navigator.move('down');
+                },
+                right: function () {
+                    if (typeof Navigator !== 'undefined') Navigator.move('right');
+                },
+                back: function () {
+                    Lampa.Activity.backward();
+                }
+            });
+            Lampa.Controller.toggle('content');
+        };
+
+        this.pause = function () {};
+        this.stop = function () {};
+        this.render = function () { return scroll.render(); };
+        this.destroy = function () {
+            scroll.destroy();
+            html.remove();
+            items = [];
+        };
+        return this;
+    }
+
     // Повний список однієї категорії з пагінацією (як StudiosView)
     function StreamingView(object) {
         var comp = new Lampa.InteractionCategory(object);
@@ -513,38 +588,11 @@
         return comp;
     }
 
-    function openStreamingPanel() {
-        var previousController = Lampa.Controller.enabled().name;
-        var items = Object.keys(SERVICE_CONFIGS)
-            .filter(function (sid) { return isAfterplayServiceEnabled(sid); })
-            .map(function (sid) {
-                return {
-                    title: SERVICE_CONFIGS[sid].title,
-                    id: sid,
-                    icon: SERVICE_ICONS[sid] || ICON_NETFLIX
-                };
-            });
-
-        Lampa.Select.show({
-            title: Lampa.Lang.translate('streaming_menu_panel_title'),
-            items: items,
-            onBack: function () {
-                try { Lampa.Controller.toggle(previousController); } catch (e) { console.error('streaming-menu onBack:', e); }
-            },
-            onSelect: function (selectedItem) {
-                try {
-                    var serviceId = selectedItem.id;
-                    if (!serviceId) return;
-                    var title = SERVICE_CONFIGS[serviceId] ? SERVICE_CONFIGS[serviceId].title : selectedItem.title;
-                    Lampa.Controller.toggle(previousController);
-                    Lampa.Activity.push({
-                        component: 'streaming_main',
-                        service_id: serviceId,
-                        title: title,
-                        page: 1
-                    });
-                } catch (e) { console.error('streaming-menu onSelect:', e); }
-            }
+    function openStreamingServicesList() {
+        Lampa.Activity.push({
+            component: 'streaming_services_list',
+            title: Lampa.Lang.translate('streaming_menu_title'),
+            page: 1
         });
     }
 
@@ -559,7 +607,7 @@
             '  <div class="menu__text">' + title + '</div>' +
             '</li>'
         );
-        itemHtml.on('hover:enter', function () { openStreamingPanel(); });
+        itemHtml.on('hover:enter', function () { openStreamingServicesList(); });
         var afterItem = menu.find('[data-action="catalog"]').length ? menu.find('[data-action="catalog"]') : menu.find('[data-action="tv"]');
         if (afterItem.length) afterItem.after(itemHtml);
         else menu.find('.menu__item').last().after(itemHtml);
@@ -568,6 +616,7 @@
     function init() {
         Lampa.Component.add('streaming_main', StreamingMain);
         Lampa.Component.add('streaming_view', StreamingView);
+        Lampa.Component.add('streaming_services_list', StreamingServicesList);
         addMenuItem();
 
         if (typeof Lampa.SettingsApi !== 'undefined') {
