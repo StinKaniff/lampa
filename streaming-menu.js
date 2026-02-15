@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+    var COMPONENT_NAME = 'streaming_menu_category';
+
     // Стрімінгові сервіси (TMDB network id)
     var allStreamingServices = [
         { id: 49, title: 'HBO' },
@@ -32,6 +34,58 @@
         streaming_menu_panel_title: { ru: 'Выбор стриминговых сервисов', en: 'Choose streaming services', uk: 'Вибір стрімінгових сервісів' }
     });
 
+    // Компонент категорії: список серіалів/фільмів по вибраному стрімінгу (TMDB discover by network)
+    function streamingCategoryComponent(object) {
+        var comp = new Lampa.InteractionCategory(object);
+
+        comp.create = function () {
+            var _this = this;
+            var networkId = object.url;
+            var page = object.page || 1;
+
+            this.activity.loader(true);
+
+            if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
+                this.empty();
+                return this.render();
+            }
+
+            Lampa.Api.sources.tmdb.get('discover/tv', {
+                with_networks: networkId,
+                page: page,
+                sort_by: 'popularity.desc'
+            }, function (data) {
+                if (data && data.results && data.results.length) {
+                    _this.build(data);
+                } else {
+                    _this.empty();
+                }
+            }, function () {
+                _this.empty();
+            });
+
+            return this.render();
+        };
+
+        comp.nextPageReuest = function (obj, resolve, reject) {
+            var networkId = obj.url;
+            var page = obj.page || 1;
+
+            if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
+                reject();
+                return;
+            }
+
+            Lampa.Api.sources.tmdb.get('discover/tv', {
+                with_networks: networkId,
+                page: page,
+                sort_by: 'popularity.desc'
+            }, resolve, reject);
+        };
+
+        return comp;
+    }
+
     function openStreamingPanel() {
         var previousController = Lampa.Controller.enabled().name;
 
@@ -62,15 +116,11 @@
 
                     Lampa.Controller.toggle(previousController);
 
-                    // Відкриваємо каталог серіалів/фільмів цього стрімінгу (TMDB discover by network)
                     Lampa.Activity.push({
-                        component: 'category',
-                        url: 'tv',
+                        component: COMPONENT_NAME,
+                        url: String(serviceId),
                         title: serviceTitle,
-                        source: 'tmdb',
-                        network: serviceId,
-                        page: 1,
-                        card_type: true
+                        page: 1
                     });
                 } catch (e) {
                     console.error('streaming-menu onSelect:', e);
@@ -100,7 +150,6 @@
             openStreamingPanel();
         });
 
-        // Вставляємо після "Каталог" або після "Серіали"
         var afterItem = menu.find('[data-action="catalog"]');
         if (!afterItem.length) {
             afterItem = menu.find('[data-action="tv"]');
@@ -113,6 +162,7 @@
     }
 
     function init() {
+        Lampa.Component.add(COMPONENT_NAME, streamingCategoryComponent);
         addMenuItem();
     }
 
