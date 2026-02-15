@@ -37,7 +37,7 @@
         },
         hbo: {
             title: 'HBO',
-            provider_ids: [384, 49],
+            provider_ids: [384], // 384 = HBO Max (watch provider); 49 — мережа, не провайдер
             categories: [
                 { title: 'Нові серіали HBO/Max', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'HBO: Головні хіти', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc' } },
@@ -110,23 +110,39 @@
     var CONTINUE_MAX = 19;
     var FILTER_BATCH_SIZE = 5;
 
+    function parseProviderIdsFromResponse(json) {
+        var ids = [];
+        if (json && json.results && json.results[WATCH_REGION]) {
+            var flat = json.results[WATCH_REGION].flatrate;
+            if (flat && flat.length) {
+                flat.forEach(function (p) { if (p.provider_id) ids.push(p.provider_id); });
+            }
+        }
+        return ids;
+    }
+
     function getProviderIdsForCard(card, callback) {
         if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
-            callback([]);
+            callback(null);
             return;
         }
-        var isTv = card.number_of_seasons || card.seasons || card.first_air_date;
+        var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
         var path = (isTv ? 'tv' : 'movie') + '/' + card.id + '/watch/providers';
         Lampa.Api.sources.tmdb.get(path, {}, function (json) {
-            var ids = [];
-            if (json && json.results && json.results[WATCH_REGION]) {
-                var flat = json.results[WATCH_REGION].flatrate;
-                if (flat && flat.length) {
-                    flat.forEach(function (p) { if (p.provider_id) ids.push(p.provider_id); });
-                }
+            callback(parseProviderIdsFromResponse(json));
+        }, function () {
+            if (!isTv) {
+                var pathTv = 'tv/' + card.id + '/watch/providers';
+                Lampa.Api.sources.tmdb.get(pathTv, {}, function (json2) {
+                    callback(parseProviderIdsFromResponse(json2));
+                }, function () { callback(null); });
+            } else {
+                var pathMovie = 'movie/' + card.id + '/watch/providers';
+                Lampa.Api.sources.tmdb.get(pathMovie, {}, function (json2) {
+                    callback(parseProviderIdsFromResponse(json2));
+                }, function () { callback(null); });
             }
-            callback(ids);
-        }, function () { callback([]); });
+        });
     }
 
     function filterCardsByProvider(cards, providerIds, done) {
@@ -151,8 +167,11 @@
             var pending = batch.length;
             batch.forEach(function (card) {
                 getProviderIdsForCard(card, function (ids) {
-                    var has = ids.some(function (id) { return providerIds.indexOf(id) !== -1; });
-                    if (has) out.push(card);
+                    if (ids === null) {
+                        out.push(card);
+                    } else if (ids.length && ids.some(function (id) { return providerIds.indexOf(id) !== -1; })) {
+                        out.push(card);
+                    }
                     pending--;
                     if (pending === 0) checkNext();
                 });
