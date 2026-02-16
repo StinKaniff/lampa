@@ -84,7 +84,15 @@
             title: 'Disney+',
             filterCards: function (cards, done) { filterCardsByProvider(cards, [337], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '337', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                {
+                    title: 'streaming_popular_now',
+                    url: 'discover/tv',
+                    params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'popularity.desc', 'vote_count.gte': '10' },
+                    mergeRequests: [
+                        { url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                        { url: 'discover/movie', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
+                    ]
+                },
                 { title: 'Marvel: Кіновсесвіт', url: 'discover/movie', params: { with_companies: '420', sort_by: 'release_date.desc', 'vote_count.gte': '200' } },
                 { title: 'Зоряні Війни', url: 'discover/movie', params: { with_companies: '1', sort_by: 'release_date.asc' } },
                 catNewTvProvider(337, 'Нові серіали на Disney+'),
@@ -371,13 +379,31 @@
             function startRest() {
                 if (isStale()) return;
                 categories.forEach(function (cat, index) {
-                    network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
-                        if (isStale()) return;
-                        status.append(String(index), json);
-                    }, function () {
-                        if (isStale()) return;
-                        status.error();
-                    });
+                    if (cat.mergeRequests && cat.mergeRequests.length) {
+                        var pending = cat.mergeRequests.length;
+                        var allResults = [];
+                        cat.mergeRequests.forEach(function (req) {
+                            network.silent(buildDiscoverUrl({ url: req.url, params: req.params, page: 1 }), function (json) {
+                                if (isStale()) return;
+                                if (json && json.results && json.results.length) allResults = allResults.concat(json.results);
+                                pending--;
+                                if (pending === 0) status.append(String(index), { results: allResults });
+                            }, function () {
+                                if (isStale()) return;
+                                pending--;
+                                if (pending === 0) status.append(String(index), { results: allResults });
+                                status.error();
+                            });
+                        });
+                    } else {
+                        network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
+                            if (isStale()) return;
+                            status.append(String(index), json);
+                        }, function () {
+                            if (isStale()) return;
+                            status.error();
+                        });
+                    }
                 });
             }
 
