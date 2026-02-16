@@ -378,6 +378,7 @@
             var staticDone = false;
             var continueDone = false;
             var continueFiltered = [];
+            var origStart = comp.start;
             this.activity.loader(true);
 
             function isStale() { return comp._streamingSessionId !== sessionId; }
@@ -395,11 +396,14 @@
                 });
             }
 
-            // Після кожного відкриття сторінки стрімінгу — рахуємо нещодавно переглянуті і фільтруємо під цей сервіс.
-            function startContinueWatching() {
+            // Після кожного відкриття/показу сторінки стрімінгу — рахуємо нещодавно переглянуті і фільтруємо під цей сервіс.
+            // isRefreshFromStart: при поверненні з кешу (start) перераховуємо блок «Продовжити перегляд», щоб фільтр не ламався.
+            function startContinueWatching(isRefreshFromStart) {
                 if (isStale()) return;
+                if (isRefreshFromStart) continueDone = false;
                 var cards = getRecentlyWatchedCards();
                 if (!cards.length || !config.filterCards) {
+                    continueFiltered = [];
                     continueDone = true;
                     tryBuild();
                     return;
@@ -413,8 +417,14 @@
             }
 
             startRest();
-            startContinueWatching();
+            startContinueWatching(false);
             tryBuild();
+
+            // Коли сторінка знову стає активною (в т.ч. повернення з кешу) — оновлюємо блок «Продовжити перегляд» під поточний стрімінг.
+            comp.start = function () {
+                if (typeof origStart === 'function') origStart.call(comp);
+                if (!isStale() && staticDone) startContinueWatching(true);
+            };
 
             function buildFullData() {
                 var fulldata = [];
