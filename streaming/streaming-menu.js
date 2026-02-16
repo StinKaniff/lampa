@@ -160,7 +160,6 @@
 
     var FILTER_BATCH_SIZE = 5;
     var CONTINUE_WATCHING_MAX = 20; // скільки з історії брати для фільтрації; після фільтра по стрімінгу залишиться менше
-    var CONTINUE_REFRESH_DEBOUNCE_MS = 2500; // мін. інтервал між оновленнями блоку «Продовжити» при start() — щоб не стрибали картки
 
     /** Повертає нещодавно переглянуті (історія без переглянутих/відкинутих) для подальшого фільтра по стрімінгу. */
     function getRecentlyWatchedCards() {
@@ -379,8 +378,6 @@
             var staticDone = false;
             var continueDone = false;
             var continueFiltered = [];
-            var lastContinueRefreshAt = 0;
-            var origStart = comp.start;
             this.activity.loader(true);
 
             function isStale() { return comp._streamingSessionId !== sessionId; }
@@ -398,14 +395,11 @@
                 });
             }
 
-            // При відкритті/переході на сторінку — рахуємо нещодавно переглянуті і фільтруємо під цей сервіс.
-            // isRefresh: true = виклик з start() (повернення на сторінку), тоді чекаємо завершення перед tryBuild.
-            function startContinueWatching(isRefresh) {
+            // Після кожного відкриття сторінки стрімінгу — рахуємо нещодавно переглянуті і фільтруємо під цей сервіс.
+            function startContinueWatching() {
                 if (isStale()) return;
-                if (isRefresh) continueDone = false;
                 var cards = getRecentlyWatchedCards();
                 if (!cards.length || !config.filterCards) {
-                    continueFiltered = [];
                     continueDone = true;
                     tryBuild();
                     return;
@@ -419,18 +413,8 @@
             }
 
             startRest();
-            startContinueWatching(false);
+            startContinueWatching();
             tryBuild();
-
-            // Оновлюємо блок «Продовжити перегляд» при переході на сторінку, але не частіше ніж раз на N сек (щоб картки не стрибали).
-            comp.start = function () {
-                if (typeof origStart === 'function') origStart.call(comp);
-                if (isStale() || !staticDone) return;
-                var now = Date.now();
-                if (now - lastContinueRefreshAt < CONTINUE_REFRESH_DEBOUNCE_MS) return;
-                lastContinueRefreshAt = now;
-                startContinueWatching(true);
-            };
 
             function buildFullData() {
                 var fulldata = [];
