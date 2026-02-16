@@ -27,7 +27,7 @@
             title: 'Netflix',
             filterCards: function (cards, done) { filterCardsByProvider(cards, [8], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc' } },
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Екшн та блокбастери', url: 'discover/movie', params: { with_companies: '213', with_genres: '28,12', sort_by: 'popularity.desc' } },
                 { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -43,7 +43,7 @@
             title: 'Apple TV+',
             filterCards: function (cards, done) { filterCardsByProvider(cards, [350], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'popularity.desc' } },
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '350', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Фантастика Apple', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
                 { title: 'Комедії та Feel-good', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '35', sort_by: 'popularity.desc' } },
                 catNewTvProvider(350),
@@ -55,7 +55,7 @@
             title: 'HBO',
             filterCards: function (cards, done) { filterCardsByTvNetwork(cards, [49, 3186], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'popularity.desc' } },
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Max Originals', url: 'discover/tv', params: { with_networks: '3186', sort_by: 'popularity.desc' } },
                 { title: 'Золота колекція HBO', url: 'discover/tv', params: { with_networks: '49', sort_by: 'vote_average.desc', 'vote_count.gte': '500', 'vote_average.gte': '8.0' } },
                 { title: 'Нові серіали HBO/Max', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -70,7 +70,7 @@
             title: 'Prime Video',
             filterCards: function (cards, done) { filterCardsByProviderAndNetwork(cards, [119], [1024], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc' } },
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Екшн та антигерої', url: 'discover/tv', params: { with_networks: '1024', with_genres: '10765,10759', sort_by: 'popularity.desc' } },
                 { title: 'Найвищий рейтинг', url: 'discover/tv', params: { with_networks: '1024', 'vote_average.gte': '8.0', 'vote_count.gte': '500', sort_by: 'vote_average.desc' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -84,20 +84,22 @@
             title: 'Disney+',
             filterCards: function (cards, done) { filterCardsByProvider(cards, [337], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'popularity.desc' } },
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '337', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Marvel: Кіновсесвіт', url: 'discover/movie', params: { with_companies: '420', sort_by: 'release_date.desc', 'vote_count.gte': '200' } },
                 { title: 'Зоряні Війни', url: 'discover/movie', params: { with_companies: '1', sort_by: 'release_date.asc' } },
                 catNewTvProvider(337, 'Нові серіали на Disney+'),
                 catNewMoviesProvider(337, 'Нові фільми на Disney+'),
                 { title: 'Класика Disney', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc' } },
-                { title: 'Pixar', url: 'discover/movie', params: { with_companies: '3', sort_by: 'popularity.desc' } }
+                { title: 'Pixar', url: 'discover/movie', params: { with_companies: '3', sort_by: 'popularity.desc' } },
+                { title: 'Анімація', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', with_genres: '16', sort_by: 'popularity.desc' } },
+                { title: 'Сімейний перегляд', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', with_genres: '10751', sort_by: 'popularity.desc' } }
             ]
         },
         paramount: {
             title: 'Paramount+',
             filterCards: function (cards, done) { filterCardsByProvider(cards, [531], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
                 { title: 'Всесвіт Йеллоустоун', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -110,7 +112,7 @@
             title: 'NatGeo',
             filterCards: function (cards, done) { filterCardsByTvNetwork(cards, [43, 1043], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Космос', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } },
                 { title: 'Дика природа', url: 'discover/tv', params: { with_networks: '1043', with_genres: '99', sort_by: 'popularity.desc' } },
                 { title: 'Документальні серіали', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'first_air_date.desc', 'vote_count.gte': '5' } },
@@ -389,7 +391,11 @@
                     if (data && data.results && data.results.length) {
                         var cat = categories[parseInt(key, 10)];
                         Lampa.Utils.extendItemsParams(data.results, { style: { name: 'wide' } });
-                        var rowTitle = cat.title === 'streaming_popular_now' && Lampa.Lang && Lampa.Lang.translate ? Lampa.Lang.translate('streaming_popular_now') : cat.title;
+                        var rowTitle = cat.title;
+                        if (cat.title === 'streaming_popular_now') {
+                            rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_popular_now')) || 'Популярно зараз';
+                            if (rowTitle === 'streaming_popular_now') rowTitle = 'Популярно зараз';
+                        }
                         fulldata.push({
                             title: rowTitle,
                             results: data.results,
