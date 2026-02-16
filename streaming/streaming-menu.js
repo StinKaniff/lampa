@@ -154,10 +154,27 @@
         streaming_menu_title: { ru: 'Стриминги', en: 'Streaming', uk: 'Стрімінги' },
         streaming_menu_panel_title: { ru: 'Выбор стриминговых сервисов', en: 'Choose streaming services', uk: 'Вибір стрімінгових сервісів' },
         sqr_streaming_chooser_title: { ru: 'Вибір стримингов', en: 'Choose streamings', uk: 'Вибір стримінгів' },
-        sqr_settings_title: { ru: 'SQR', en: 'SQR', uk: 'SQR' }
+        sqr_settings_title: { ru: 'SQR', en: 'SQR', uk: 'SQR' },
+        streaming_continue_watching: { ru: 'Продолжить просмотр', en: 'Continue watching', uk: 'Продовжити перегляд' }
     });
 
     var FILTER_BATCH_SIZE = 5;
+    var CONTINUE_WATCHING_MAX = 20; // скільки з історії брати для фільтрації; після фільтра по стрімінгу залишиться менше
+
+    /** Повертає нещодавно переглянуті (історія без переглянутих/відкинутих) для подальшого фільтра по стрімінгу. */
+    function getRecentlyWatchedCards() {
+        if (!Lampa.Favorite || !Lampa.Favorite.get) return [];
+        var history = Lampa.Favorite.get({ type: 'history' });
+        if (!history || !history.length) return [];
+        var viewed = Lampa.Favorite.get({ type: 'viewed' }) || [];
+        var thrown = Lampa.Favorite.get({ type: 'thrown' }) || [];
+        var viewedIds = viewed.map(function (c) { return c.id; });
+        var thrownIds = thrown.map(function (c) { return c.id; });
+        var list = history.filter(function (e) {
+            return viewedIds.indexOf(e.id) === -1 && thrownIds.indexOf(e.id) === -1;
+        });
+        return list.slice(0, CONTINUE_WATCHING_MAX);
+    }
 
     // Для блоку «Продовжити» / «Рекомендації» регіон не використовуємо — збираємо провайдерів з усіх регіонів
     function parseProviderIdsFromResponse(json) {
@@ -359,6 +376,8 @@
             var network = new Lampa.Reguest();
             var status = new Lampa.Status(categories.length);
             var staticDone = false;
+            var continueDone = false;
+            var continueFiltered = [];
             this.activity.loader(true);
 
             function isStale() { return comp._streamingSessionId !== sessionId; }
@@ -376,11 +395,40 @@
                 });
             }
 
+            // Після кожного відкриття сторінки стрімінгу — рахуємо нещодавно переглянуті і фільтруємо під цей сервіс.
+            function startContinueWatching() {
+                if (isStale()) return;
+                var cards = getRecentlyWatchedCards();
+                if (!cards.length || !config.filterCards) {
+                    continueDone = true;
+                    tryBuild();
+                    return;
+                }
+                config.filterCards(cards, function (filtered) {
+                    if (isStale()) return;
+                    continueFiltered = filtered || [];
+                    continueDone = true;
+                    tryBuild();
+                });
+            }
+
             startRest();
+            startContinueWatching();
             tryBuild();
 
             function buildFullData() {
                 var fulldata = [];
+                if (continueFiltered.length) {
+                    var continueTitle = Lampa.Lang.translate('streaming_continue_watching');
+                    if (Lampa.Utils && Lampa.Utils.extendItemsParams) {
+                        Lampa.Utils.extendItemsParams(continueFiltered, { style: { name: 'wide' } });
+                    }
+                    fulldata.push({
+                        title: continueTitle,
+                        results: continueFiltered
+                        // без url/params — рядок «Продовжити перегляд» без переходу в категорію
+                    });
+                }
                 Object.keys(status.data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
                     var data = status.data[key];
                     if (data && data.results && data.results.length) {
@@ -399,7 +447,7 @@
 
             function tryBuild() {
                 if (isStale()) return;
-                if (!staticDone) return;
+                if (!staticDone || !continueDone) return;
                 var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
