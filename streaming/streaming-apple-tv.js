@@ -21,28 +21,30 @@
         };
     }
 
-    // Плагін тільки Apple TV+. filterCards — для блоку «Продовжити перегляд».
+    // Кожен сервіс — окремий «плагін»: своя filterCards(cards, done), лише свій контент у «Продовжити перегляд».
     var SERVICE_CONFIGS = {
-        apple: {
-            title: 'Apple TV+',
-            filterCards: function (cards, done) { filterCardsByProvider(cards, [350], done); },
+        netflix: {
+            title: 'Netflix',
+            filterCards: function (cards, done) { filterCardsByProvider(cards, [8], done); },
             categories: [
-                catNewMoviesProvider(350),
-                catNewTvProvider(350),
-                { title: 'Хіти Apple TV+', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'popularity.desc' } },
-                { title: 'Фантастика Apple', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
-                { title: 'Комедії та Feel-good', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '35', sort_by: 'popularity.desc' } },
-                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '99', sort_by: 'popularity.desc' } },
-                { title: 'Космос та наука', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
+                { title: 'В тренді на Netflix', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc' } },
+                { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Екшн та блокбастери', url: 'discover/movie', params: { with_companies: '213', with_genres: '28,12', sort_by: 'popularity.desc' } },
+                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
+                { title: 'Кримінальні драми', url: 'discover/tv', params: { with_networks: '213', with_genres: '80', sort_by: 'popularity.desc' } },
+                { title: 'Вибір критиків', url: 'discover/movie', params: { with_companies: '213', 'vote_average.gte': '7.5', 'vote_count.gte': '300', sort_by: 'vote_average.desc' } },
+                { title: 'Природа та дика природа', url: 'discover/tv', params: { with_networks: '213', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Космос та наука', url: 'discover/tv', params: { with_networks: '213', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } }
             ]
         }
     };
 
-    // Логотипи (вбудовані в код для роботи з CDN)
+    // Логотипи з streaming/img (вбудовані в код для роботи з CDN)
     var ICON_SIZE = ' width="24" height="24"';
-    var ICON_APPLE = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M368 440c-21 21-45 18-68 8a87 87 0 0 0-72 0c-32 14-49 10-68-8-109-112-93-282 31-288 30 1 50 16 68 18 26-6 51-21 79-19 34 3 59 16 76 40a88 88 0 0 0 11 158c-13 34-30 67-57 91ZM257 150c-4-49 37-90 83-94 6 57-52 100-83 94Z"/></svg>';
+    var ICON_NETFLIX = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M146 56h80l59 177 1-177h80v400c-25-4-53-7-82-8l-58-172-1 172c-28 1-55 4-79 8V56Z"/></svg>';
     var SERVICE_ICONS = {
-        apple: ICON_APPLE
+        netflix: ICON_NETFLIX
     };
 
     var SQR_STORAGE_PREFIX = 'sqr_show_';
@@ -420,7 +422,7 @@
         var config = SERVICE_CONFIGS[sid];
         if (!config) return insertAfter;
         var title = config.title;
-        var icon = SERVICE_ICONS[sid] || ICON_APPLE;
+        var icon = SERVICE_ICONS[sid] || ICON_NETFLIX;
         var dataAction = 'streaming_menu_' + sid;
         var itemHtml = $(
             '<li class="menu__item selector" data-action="' + dataAction + '">' +
@@ -470,7 +472,7 @@
         function buildRow(sid) {
             var config = SERVICE_CONFIGS[sid];
             if (!config) return null;
-            var icon = SERVICE_ICONS[sid] || ICON_APPLE;
+            var icon = SERVICE_ICONS[sid] || ICON_NETFLIX;
             var storageKey = SQR_STORAGE_PREFIX + sid;
             var checked = isSqrServiceEnabled(sid);
             var row = $(
