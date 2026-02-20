@@ -38,9 +38,10 @@
                 // Continue & Trending //
                 { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_TRENDING },
-                // Exclusive //
+                // New //
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_NEW },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: '{watch_region}', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_NEW },
+                // Exclusive //
                 { title: 'Netflix Original', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_EXCLUSIVE, mergeRequests: [ { url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc', 'vote_count.gte': '1' } }, { url: 'discover/movie', params: { with_companies: '213', sort_by: 'popularity.desc', 'vote_count.gte': '1' } } ] },
                 { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_keywords: KEYWORD_FANTASY_WORLD, sort_by: 'popularity.desc', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 { title: 'На основі книг', url: 'discover/tv', params: { with_networks: '213', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
@@ -66,9 +67,10 @@
                 // Continue & Trending //
                 { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_TRENDING },
-                // Exclusive //
+                // New //
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_NEW },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_NEW },
+                // Exclusive //
                 { title: 'Apple TV+ Original', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_EXCLUSIVE, mergeRequests: [ { url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '1' } }, { url: 'discover/movie', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '1' } } ] },
                 { title: 'Фантастичні світи', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_genres: '10765', sort_by: 'popularity.desc', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 { title: 'На основі книг', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '1' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
@@ -274,13 +276,7 @@
             function getContinueWatchingList() {
                 if (!Lampa.Favorite || !Lampa.Favorite.get) return [];
                 var history = Lampa.Favorite.get({ type: 'history' }) || [];
-                var viewed = Lampa.Favorite.get({ type: 'viewed' }) || [];
-                var thrown = Lampa.Favorite.get({ type: 'thrown' }) || [];
-                var viewedIds = viewed.map(function (c) { return c.id; });
-                var thrownIds = thrown.map(function (c) { return c.id; });
-                return history.filter(function (e) {
-                    return viewedIds.indexOf(e.id) === -1 && thrownIds.indexOf(e.id) === -1;
-                }).slice(0, 10);
+                return history.slice(0, 10);
             }
 
             function filterContinueByService(list, serviceId, done) {
