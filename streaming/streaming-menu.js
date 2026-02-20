@@ -183,6 +183,7 @@
         streaming_show_popular_now: { en: 'Show «Popular now»', uk: 'Відображати «Популярно зараз»' },
         streaming_enabled_services_label: { en: 'Streamings', uk: 'Стримінги' },
         streaming_display_categories_label: { en: 'Display categories', uk: 'Відображати категорії' },
+        streaming_more_label: { en: 'See all', uk: 'Дивитись усі' },
         streaming_show_genre_12: { en: 'Adventure', uk: 'Пригоди' },
         streaming_show_genre_14: { en: 'Fantasy', uk: 'Фентезі' },
         streaming_show_genre_878: { en: 'Sci-Fi', uk: 'Наукова фантастика' },
@@ -358,14 +359,17 @@
                     if (!cat || !results.length) return;
                     Lampa.Utils.extendItemsParams(results, { style: { name: 'wide' } });
                     var rowTitle = cat.title;
-                        if (cat.title === 'streaming_popular_now') {
-                            rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_popular_now')) || 'Популярно зараз';
-                            if (rowTitle === 'streaming_popular_now') rowTitle = 'Популярно зараз';
-                        }
-                        if (cat.title === 'streaming_continue_watching') {
-                            rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_continue_watching')) || 'Продовжити перегляд';
-                            if (rowTitle === 'streaming_continue_watching') rowTitle = 'Продовжити перегляд';
-                        }
+                    if (cat.title === 'streaming_popular_now') {
+                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_popular_now')) || 'Популярно зараз';
+                        if (rowTitle === 'streaming_popular_now') rowTitle = 'Популярно зараз';
+                    }
+                    if (cat.title === 'streaming_continue_watching') {
+                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_continue_watching')) || 'Продовжити перегляд';
+                        if (rowTitle === 'streaming_continue_watching') rowTitle = 'Продовжити перегляд';
+                    }
+                    if (cat.url && cat.params) {
+                        results.push({ type: 'more', url: cat.url, params: cat.params, title: rowTitle });
+                    }
                     fulldata.push({
                         title: rowTitle,
                         results: results,
@@ -411,26 +415,47 @@
         return comp;
     }
 
-    // Повний список однієї категорії з пагінацією (як StudiosView)
+    // Повний список однієї категорії з пагінацією. TMDB: 20 на сторінку; спочатку завантажуємо 3 сторінки (60).
+    var STREAMING_VIEW_INITIAL_PAGES = 3;
+
     function StreamingView(object) {
         var comp = new Lampa.InteractionCategory(object);
         var network = new Lampa.Reguest();
+        var initialPagesLoaded = 0;
 
         comp.create = function () {
             var _this = this;
             this.activity.loader(true);
-            network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: 1 }), function (json) {
-                _this.build(json);
+            var pending = STREAMING_VIEW_INITIAL_PAGES;
+            var allResults = [];
+            var totalPages = 1;
+            var totalResults = 0;
+            function done() {
+                if (--pending !== 0) return;
+                initialPagesLoaded = allResults.length ? STREAMING_VIEW_INITIAL_PAGES : 0;
+                _this.build({ page: 1, results: allResults, total_pages: totalPages, total_results: totalResults });
                 _this.activity.loader(false);
-            }, function () {
-                _this.empty();
-            });
+            }
+            for (var p = 1; p <= STREAMING_VIEW_INITIAL_PAGES; p++) {
+                (function (page) {
+                    network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: page }), function (json) {
+                        if (json && json.results) allResults = allResults.concat(json.results);
+                        if (json && json.total_pages != null) totalPages = json.total_pages;
+                        if (json && json.total_results != null) totalResults = json.total_results;
+                        done();
+                    }, function () { done(); });
+                })(p);
+            }
             return this.render();
         };
 
-        comp.nextPageReuest = function (obj, resolve, reject) {
-            network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: obj.page || 1 }), resolve, reject);
-        };
+        function loadNextPage(obj, resolve, reject) {
+            var requestedPage = (obj && obj.page) ? obj.page : 1;
+            var actualPage = initialPagesLoaded ? requestedPage + initialPagesLoaded - 1 : requestedPage;
+            network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: actualPage }), resolve, reject);
+        }
+        comp.nextPageReuest = loadNextPage;
+        comp.nextPageRequest = loadNextPage;
 
         return comp;
     }
