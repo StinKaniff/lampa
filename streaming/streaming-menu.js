@@ -246,9 +246,6 @@
         return Lampa.TMDB.api(url + '?' + arr.join('&'));
     }
 
-    // Lazy load: спочатку показуємо перші N категорій, решту підвантажуємо після
-    var LAZY_LOAD_AFTER = 10;
-
     // Головний екран: рядки категорій по одному сервісу (як StudiosMain)
     function StreamingMain(object) {
         var comp = new Lampa.InteractionMain(object);
@@ -271,6 +268,7 @@
             var sessionId = Date.now();
             comp._streamingSessionId = sessionId;
             var network = new Lampa.Reguest();
+            var status = new Lampa.Status(categories.length);
             var staticDone = false;
             this.activity.loader(true);
 
@@ -310,49 +308,9 @@
                 });
             }
 
-            function buildFullData(data, cats, startIndex) {
-                if (startIndex == null) startIndex = 0;
-                var fulldata = [];
-                Object.keys(data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
-                    var slot = data[key];
-                    var results = (slot && slot.results) ? slot.results.slice(0, 20) : [];
-                    var cat = cats[startIndex + parseInt(key, 10)];
-                    if (!cat || !results.length) return;
-                    Lampa.Utils.extendItemsParams(results, { style: { name: 'wide' } });
-                    var rowTitle = cat.title;
-                    if (cat.title === 'streaming_popular_now') {
-                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_popular_now')) || 'Популярно зараз';
-                        if (rowTitle === 'streaming_popular_now') rowTitle = 'Популярно зараз';
-                    }
-                    if (cat.title === 'streaming_continue_watching') {
-                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_continue_watching')) || 'Продовжити перегляд';
-                        if (rowTitle === 'streaming_continue_watching') rowTitle = 'Продовжити перегляд';
-                    }
-                    fulldata.push({
-                        title: rowTitle,
-                        results: results,
-                        url: cat.url,
-                        params: cat.params
-                    });
-                });
-                return fulldata;
-            }
-
-            function tryBuild(data, cats, startIndex) {
+            function startRest() {
                 if (isStale()) return;
-                if (!staticDone) return;
-                var fulldata = buildFullData(data || status.data, cats || categories, startIndex != null ? startIndex : 0);
-                if (fulldata.length) {
-                    _this.build(fulldata);
-                    _this.activity.loader(false);
-                } else {
-                    _this.empty();
-                }
-            }
-
-            function startRequests(cats, status) {
-                if (isStale()) return;
-                cats.forEach(function (cat, index) {
+                categories.forEach(function (cat, index) {
                     if (cat.continueWatching) {
                         var list = getContinueWatchingList();
                         filterContinueByService(list, object.service_id, function (filtered) {
@@ -390,46 +348,55 @@
                 });
             }
 
-            var status;
-            if (categories.length <= LAZY_LOAD_AFTER) {
-                status = new Lampa.Status(categories.length);
-                startRequests(categories, status);
-                function onStatusComplete() {
-                    if (isStale()) return;
-                    staticDone = true;
-                    tryBuild(status.data, categories, 0);
-                }
-                status.onComplite = onStatusComplete;
-                if (typeof status.onComplete === 'undefined') status.onComplete = onStatusComplete;
-            } else {
-                var firstCats = categories.slice(0, LAZY_LOAD_AFTER);
-                var restCats = categories.slice(LAZY_LOAD_AFTER);
-                status = new Lampa.Status(firstCats.length);
-                startRequests(firstCats, status);
-                function onFirstComplete() {
-                    if (isStale()) return;
-                    staticDone = true;
-                    var firstFulldata = buildFullData(status.data, firstCats, 0);
-                    if (firstFulldata.length) {
-                        _this.build(firstFulldata);
-                        _this.activity.loader(false);
-                    } else {
-                        _this.empty();
+            startRest();
+            tryBuild();
+
+            function buildFullData() {
+                var fulldata = [];
+                Object.keys(status.data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
+                    var data = status.data[key];
+                    var results = (data && data.results) ? data.results.slice(0, 20) : [];
+                    var cat = categories[parseInt(key, 10)];
+                    if (!cat || !results.length) return;
+                    Lampa.Utils.extendItemsParams(results, { style: { name: 'wide' } });
+                    var rowTitle = cat.title;
+                    if (cat.title === 'streaming_popular_now') {
+                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_popular_now')) || 'Популярно зараз';
+                        if (rowTitle === 'streaming_popular_now') rowTitle = 'Популярно зараз';
                     }
-                    var statusRest = new Lampa.Status(restCats.length);
-                    function onRestComplete() {
-                        if (isStale()) return;
-                        var restFulldata = buildFullData(statusRest.data, restCats, 0);
-                        var combined = firstFulldata.concat(restFulldata);
-                        if (combined.length) _this.build(combined);
+                    if (cat.title === 'streaming_continue_watching') {
+                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_continue_watching')) || 'Продовжити перегляд';
+                        if (rowTitle === 'streaming_continue_watching') rowTitle = 'Продовжити перегляд';
                     }
-                    statusRest.onComplite = onRestComplete;
-                    if (typeof statusRest.onComplete === 'undefined') statusRest.onComplete = onRestComplete;
-                    startRequests(restCats, statusRest);
-                }
-                status.onComplite = onFirstComplete;
-                if (typeof status.onComplete === 'undefined') status.onComplete = onFirstComplete;
+                    fulldata.push({
+                        title: rowTitle,
+                        results: results,
+                        url: cat.url,
+                        params: cat.params
+                    });
+                });
+                return fulldata;
             }
+
+            function tryBuild() {
+                if (isStale()) return;
+                if (!staticDone) return;
+                var fulldata = buildFullData();
+                if (fulldata.length) {
+                    _this.build(fulldata);
+                    _this.activity.loader(false);
+                } else {
+                    _this.empty();
+                }
+            }
+
+            function onStatusComplete() {
+                if (isStale()) return;
+                staticDone = true;
+                tryBuild();
+            }
+            status.onComplite = onStatusComplete;
+            if (typeof status.onComplete === 'undefined') status.onComplete = onStatusComplete;
 
             return this.render();
         };
