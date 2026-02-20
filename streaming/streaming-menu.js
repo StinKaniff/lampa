@@ -306,51 +306,39 @@
         return comp;
     }
 
-    // Блок SQR у меню налаштувань: лого + регіон перегляду (watch_region)
-    var SQR_LOGO_HTML = '<div class="streaming-settings-sqr__logo-inner" style="width:24px;height:24px;border:2px solid currentColor;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:10px;">SQR</div>';
+    // SQR — окреме підменю в налаштуваннях (як у Applecation: Lampa.SettingsApi.addComponent + addParam)
+    var SQR_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
 
-    function buildSqrSettingsBlock() {
-        var lang = (Lampa.Storage && Lampa.Storage.get('language')) || 'uk';
-        var regionTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_region_label')) || 'Регіон перегляду';
-        var currentRegion = getWatchRegion();
-        var listItems = WATCH_REGIONS.map(function (r) {
-            var label = (r.label && r.label[lang]) ? r.label[lang] : r.code;
-            var active = currentRegion === r.code ? ' menu__item--active' : '';
-            return '<li class="menu__item selector' + active + '" data-region="' + r.code + '"><div class="menu__text">' + label + '</div></li>';
-        }).join('');
-        var block = $('<div class="streaming-settings-sqr settings__block">' +
-            '<div class="streaming-settings-sqr__head">' +
-            '<div class="streaming-settings-sqr__logo">' + SQR_LOGO_HTML + '</div>' +
-            '<div class="streaming-settings-sqr__title">SQR</div>' +
-            '</div>' +
-            '<div class="streaming-settings-sqr__label">' + regionTitle + '</div>' +
-            '<ul class="menu__list">' + listItems + '</ul></div>');
-        block.find('.menu__item[data-region]').on('hover:enter click', function () {
-            var code = $(this).data('region');
-            Lampa.Storage.set(STORAGE_WATCH_REGION, code);
-            block.find('.menu__item').removeClass('menu__item--active').filter('[data-region="' + code + '"]').addClass('menu__item--active');
+    function registerSqrSettingsApi() {
+        if (!Lampa.SettingsApi || typeof Lampa.SettingsApi.addComponent !== 'function') return;
+        Lampa.SettingsApi.addComponent({
+            component: 'streaming_sqr_settings',
+            name: 'SQR',
+            icon: SQR_ICON_SVG
         });
-        return block;
-    }
-
-    function tryInjectSqrBlock(container) {
-        if (!container || !container.length) return;
-        var c = container.jquery ? container : $(container);
-        if (c.find('.streaming-settings-sqr').length) return;
-        c.prepend(buildSqrSettingsBlock());
-    }
-
-    function injectSqrIntoSettings() {
-        if (Lampa.Listener && Lampa.Listener.follow) {
-            Lampa.Listener.follow('settings', function (ev) {
-                var container = (ev && ev.container) ? $(ev.container) : $('.settings__content, .activity__content').first();
-                tryInjectSqrBlock(container);
-            });
-        }
-        setTimeout(function () {
-            var container = $('.settings__content, .activity__content').first();
-            tryInjectSqrBlock(container);
-        }, 500);
+        var regionLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_region_label')) || 'Регіон перегляду';
+        var regionValues = {};
+        WATCH_REGIONS.forEach(function (r) {
+            var lang = (Lampa.Storage && Lampa.Storage.get('language')) || 'uk';
+            var label = (r.label && r.label[lang]) ? r.label[lang] : r.code;
+            regionValues[r.code] = label;
+        });
+        Lampa.SettingsApi.addParam({
+            component: 'streaming_sqr_settings',
+            param: {
+                name: STORAGE_WATCH_REGION,
+                type: 'select',
+                values: regionValues,
+                default: 'UA'
+            },
+            field: { name: regionLabel },
+            onChange: function (value) {
+                if (value === 'UA' || value === 'US' || value === 'EU') {
+                    Lampa.Storage.set(STORAGE_WATCH_REGION, value);
+                    if (Lampa.Settings && Lampa.Settings.update) Lampa.Settings.update();
+                }
+            }
+        });
     }
 
     var MENU_ANCHOR = '[data-action="catalog"]';
@@ -413,7 +401,7 @@
         Lampa.Component.add('streaming_main', StreamingMain);
         Lampa.Component.add('streaming_view', StreamingView);
         addStreamingMenuItems();
-        injectSqrIntoSettings();
+        registerSqrSettingsApi();
     }
 
     if (typeof Lampa === 'undefined') {
