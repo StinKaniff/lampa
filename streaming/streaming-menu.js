@@ -270,9 +270,19 @@
             var network = new Lampa.Reguest();
             var status = new Lampa.Status(categories.length);
             var staticDone = false;
+            var appendCount = 0;
+            var expectedAppends = categories.length;
             this.activity.loader(true);
 
             function isStale() { return comp._streamingSessionId !== sessionId; }
+
+            function onAppend() {
+                appendCount++;
+                if (appendCount >= expectedAppends && !staticDone) {
+                    staticDone = true;
+                    tryBuild();
+                }
+            }
 
             function getContinueWatchingList() {
                 if (!Lampa.Favorite || !Lampa.Favorite.get) return [];
@@ -316,6 +326,7 @@
                         filterContinueByService(list, object.service_id, function (filtered) {
                             if (isStale()) return;
                             status.append(String(index), { results: filtered });
+                            onAppend();
                         });
                         return;
                     }
@@ -327,11 +338,11 @@
                                 if (isStale()) return;
                                 if (json && json.results && json.results.length) allResults = allResults.concat(json.results);
                                 pending--;
-                                if (pending === 0) status.append(String(index), { results: allResults });
+                                if (pending === 0) { status.append(String(index), { results: allResults }); onAppend(); }
                             }, function () {
                                 if (isStale()) return;
                                 pending--;
-                                if (pending === 0) status.append(String(index), { results: allResults });
+                                if (pending === 0) { status.append(String(index), { results: allResults }); onAppend(); }
                                 status.error();
                             });
                         });
@@ -339,9 +350,11 @@
                         network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
                             if (isStale()) return;
                             status.append(String(index), json);
+                            onAppend();
                         }, function () {
                             if (isStale()) return;
                             status.append(String(index), { results: [] });
+                            onAppend();
                             status.error();
                         });
                     }
