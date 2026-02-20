@@ -133,7 +133,6 @@
     Lampa.Lang.add({
         streaming_menu_title: { ru: 'Стриминги', en: 'Streaming', uk: 'Стрімінги' },
         streaming_popular_now: { ru: 'Популярно сейчас', en: 'Popular now', uk: 'Популярно зараз' },
-        streaming_settings_title: { ru: 'Настройки стримингов', en: 'Streaming settings', uk: 'Налаштування стрімінгів' },
         streaming_region_label: { ru: 'Регион просмотра', en: 'Watch region', uk: 'Регіон перегляду' }
     });
 
@@ -307,64 +306,56 @@
         return comp;
     }
 
-    // Екран налаштувань: регіон перегляду (watch_region)
-    function StreamingSettings(object) {
-        var comp = {};
-        comp._rendered = null;
-        comp.render = function () {
-            if (!comp._rendered) comp._rendered = $('<div class="activity"><div class="activity__content"></div></div>');
-            return comp._rendered;
-        };
-        comp.create = function () {
-            var _this = this;
-            if (_this.activity) _this.activity.loader(false);
-            var lang = (Lampa.Storage && Lampa.Storage.get('language')) || 'uk';
-            var regionTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_region_label')) || 'Регіон перегляду';
-            var currentRegion = getWatchRegion();
-            var listHtml = '<div class="streaming-settings">' +
-                '<div class="streaming-settings__title">' + regionTitle + '</div>' +
-                '<div class="menu menu--full"><ul class="menu__list">';
-            WATCH_REGIONS.forEach(function (r) {
-                var label = (r.label && r.label[lang]) ? r.label[lang] : r.code;
-                var active = currentRegion === r.code ? ' menu__item--active' : '';
-                listHtml += '<li class="menu__item selector' + active + '" data-region="' + r.code + '"><div class="menu__text">' + label + '</div></li>';
-            });
-            listHtml += '</ul></div></div>';
-            var $content = $(listHtml);
-            $content.find('.menu__item[data-region]').on('hover:enter', function () {
-                var code = $(this).data('region');
-                Lampa.Storage.set(STORAGE_WATCH_REGION, code);
-                if (Lampa.Activity && Lampa.Activity.pop) Lampa.Activity.pop();
-            });
-            _this.render().find('.activity__content').html($content);
-            return _this.render();
-        };
-        return comp;
+    // Блок SQR у меню налаштувань: лого + регіон перегляду (watch_region)
+    var SQR_LOGO_HTML = '<div class="streaming-settings-sqr__logo-inner" style="width:24px;height:24px;border:2px solid currentColor;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:10px;">SQR</div>';
+
+    function buildSqrSettingsBlock() {
+        var lang = (Lampa.Storage && Lampa.Storage.get('language')) || 'uk';
+        var regionTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_region_label')) || 'Регіон перегляду';
+        var currentRegion = getWatchRegion();
+        var listItems = WATCH_REGIONS.map(function (r) {
+            var label = (r.label && r.label[lang]) ? r.label[lang] : r.code;
+            var active = currentRegion === r.code ? ' menu__item--active' : '';
+            return '<li class="menu__item selector' + active + '" data-region="' + r.code + '"><div class="menu__text">' + label + '</div></li>';
+        }).join('');
+        var block = $('<div class="streaming-settings-sqr settings__block">' +
+            '<div class="streaming-settings-sqr__head">' +
+            '<div class="streaming-settings-sqr__logo">' + SQR_LOGO_HTML + '</div>' +
+            '<div class="streaming-settings-sqr__title">SQR</div>' +
+            '</div>' +
+            '<div class="streaming-settings-sqr__label">' + regionTitle + '</div>' +
+            '<ul class="menu__list">' + listItems + '</ul></div>');
+        block.find('.menu__item[data-region]').on('hover:enter click', function () {
+            var code = $(this).data('region');
+            Lampa.Storage.set(STORAGE_WATCH_REGION, code);
+            block.find('.menu__item').removeClass('menu__item--active').filter('[data-region="' + code + '"]').addClass('menu__item--active');
+        });
+        return block;
     }
 
-    // Один пункт меню для одного стрімінгу. Виклик окремо для кожного — щоб меню не було пустим і відображалось вірно.
+    function tryInjectSqrBlock(container) {
+        if (!container || !container.length) return;
+        var c = container.jquery ? container : $(container);
+        if (c.find('.streaming-settings-sqr').length) return;
+        c.prepend(buildSqrSettingsBlock());
+    }
+
+    function injectSqrIntoSettings() {
+        if (Lampa.Listener && Lampa.Listener.follow) {
+            Lampa.Listener.follow('settings', function (ev) {
+                var container = (ev && ev.container) ? $(ev.container) : $('.settings__content, .activity__content').first();
+                tryInjectSqrBlock(container);
+            });
+        }
+        setTimeout(function () {
+            var container = $('.settings__content, .activity__content').first();
+            tryInjectSqrBlock(container);
+        }, 500);
+    }
+
     var MENU_ANCHOR = '[data-action="catalog"]';
     var MENU_ANCHOR_FALLBACK = '[data-action="tv"]';
     var MENU_ITEM_DELAY_MS = 150;
-
-    function addStreamingSettingsMenuItem(insertAfter) {
-        var title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_settings_title')) || 'Налаштування стрімінгів';
-        var itemHtml = $(
-            '<li class="menu__item selector" data-action="streaming_settings">' +
-            '  <div class="menu__ico"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>' +
-            '  <div class="menu__text">' + title + '</div>' +
-            '</li>'
-        );
-        itemHtml.on('hover:enter', function () {
-            Lampa.Activity.push({
-                component: 'streaming_settings',
-                title: title,
-                page: 1
-            });
-        });
-        if (insertAfter && insertAfter.length) insertAfter.after(itemHtml);
-        return itemHtml;
-    }
 
     function addOneStreamingMenuItem(sid, insertAfter) {
         var config = SERVICE_CONFIGS[sid];
@@ -411,12 +402,8 @@
                 var prev = menuNow.find('[data-action="streaming_menu_' + serviceIds[index - 2] + '"]');
                 if (prev.length) anchor = prev;
             }
-            var added = addOneStreamingMenuItem(sid, anchor);
-            if (index >= serviceIds.length) {
-                setTimeout(function () { addStreamingSettingsMenuItem(added); }, MENU_ITEM_DELAY_MS);
-            } else {
-                setTimeout(addNext, MENU_ITEM_DELAY_MS);
-            }
+            addOneStreamingMenuItem(sid, anchor);
+            if (index < serviceIds.length) setTimeout(addNext, MENU_ITEM_DELAY_MS);
         }
 
         if (serviceIds.length) addNext();
@@ -425,8 +412,8 @@
     function init() {
         Lampa.Component.add('streaming_main', StreamingMain);
         Lampa.Component.add('streaming_view', StreamingView);
-        Lampa.Component.add('streaming_settings', StreamingSettings);
         addStreamingMenuItems();
+        injectSqrIntoSettings();
     }
 
     if (typeof Lampa === 'undefined') {
