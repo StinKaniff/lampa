@@ -283,7 +283,7 @@
                 var thrownIds = thrown.map(function (c) { return c.id; });
                 return history.filter(function (e) {
                     return viewedIds.indexOf(e.id) === -1 && thrownIds.indexOf(e.id) === -1;
-                }).slice(0, 10);
+                }).slice(0, 20);
             }
 
             function filterContinueByService(list, serviceId, done) {
@@ -354,7 +354,7 @@
                 var fulldata = [];
                 Object.keys(status.data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
                     var data = status.data[key];
-                    var results = (data && data.results) ? data.results.slice(0, 10) : [];
+                    var results = (data && data.results) ? data.results.slice(0, 20) : [];
                     var cat = categories[parseInt(key, 10)];
                     if (!cat || !results.length) return;
                     Lampa.Utils.extendItemsParams(results, { style: { name: 'wide' } });
@@ -366,9 +366,6 @@
                     if (cat.title === 'streaming_continue_watching') {
                         rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_continue_watching')) || 'Продовжити перегляд';
                         if (rowTitle === 'streaming_continue_watching') rowTitle = 'Продовжити перегляд';
-                    }
-                    if (cat.url && cat.params) {
-                        results.push({ type: 'more', url: cat.url, params: cat.params, title: rowTitle });
                     }
                     fulldata.push({
                         title: rowTitle,
