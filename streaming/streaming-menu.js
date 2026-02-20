@@ -9,6 +9,16 @@
     // TMDB keyword IDs для ексклюзивних категорій Netflix
     var KEYWORD_FANTASY_WORLD = '9715';
     var KEYWORD_BASED_ON_NOVEL = '818';
+    // TMDB watch provider ID по service_id (для фільтра «Продовжити перегляд» по сервісу)
+    var SERVICE_PROVIDER_IDS = {
+        netflix: 8,
+        apple: 350,
+        hbo: 384,
+        amazon: 119,
+        disney: 337,
+        paramount: 531,
+        origin: 43
+    };
 
     var STORAGE_SHOW_TRENDING = 'streaming_show_trending';
     var STORAGE_SHOW_NEW_SERIES = 'streaming_show_new_series';
@@ -50,6 +60,7 @@
         apple: {
             title: 'Apple TV+',
             categories: [
+                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Фантастичні світи', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_genres: '10765', sort_by: 'popularity.desc', 'vote_count.gte': '20' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -63,6 +74,7 @@
         hbo: {
             title: 'HBO',
             categories: [
+                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Max Originals', url: 'discover/tv', params: { with_networks: '3186', sort_by: 'popularity.desc', 'vote_count.gte': '20' } },
                 { title: 'Золота колекція HBO', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc', 'vote_count.gte': '500' } },
@@ -77,6 +89,7 @@
         amazon: {
             title: 'Prime Video',
             categories: [
+                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Екшн та антигерої', url: 'discover/tv', params: { with_networks: '1024', with_genres: '10765,10759', sort_by: 'popularity.desc', 'vote_count.gte': '20' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
@@ -89,6 +102,7 @@
         disney: {
             title: 'Disney+',
             categories: [
+                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 {
                     title: 'streaming_popular_now',
                     url: 'discover/tv',
@@ -111,6 +125,7 @@
         paramount: {
             title: 'Paramount+',
             categories: [
+                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc', 'vote_count.gte': '20' } },
                 { title: 'Всесвіт Йеллоустоун', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc', 'vote_count.gte': '20' } },
@@ -123,6 +138,7 @@
         origin: {
             title: 'NatGeo',
             categories: [
+                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Космос', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '50' } },
                 { title: 'Дика природа', url: 'discover/tv', params: { with_networks: '1043', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '20' } },
@@ -164,7 +180,8 @@
         streaming_show_new_movies: { en: 'Show «New movies»', uk: 'Відображати «Нові фільми»' },
         streaming_show_exclusive: { en: 'Show exclusive categories', uk: 'Відображати ексклюзивні категорії' },
         streaming_show_continue_watching: { en: 'Show «Continue watching»', uk: 'Відображати «Продовжити перегляд»' },
-        streaming_enabled_services_label: { en: 'Services in menu', uk: 'Сервіси в меню' }
+        streaming_enabled_services_label: { en: 'Streamings', uk: 'Стримінги' },
+        streaming_display_categories_label: { en: 'Display categories', uk: 'Відображати категорії' }
     });
 
 
@@ -219,7 +236,7 @@
             return comp;
         }
         var categories = config.categories;
-        if (object.service_id === 'netflix' && categories) {
+        if (categories) {
             categories = categories.filter(function (cat) { return !cat.settingKey || isSettingOn(cat.settingKey); });
         }
         if (!categories || !categories.length) {
@@ -250,12 +267,37 @@
                 }).slice(0, 20);
             }
 
+            function filterContinueByService(list, serviceId, done) {
+                if (!list.length) { done([]); return; }
+                var providerId = SERVICE_PROVIDER_IDS[serviceId];
+                if (providerId == null) { done(list); return; }
+                var region = getWatchRegion();
+                var filtered = [];
+                var pending = list.length;
+                function check() { if (--pending === 0) done(filtered); }
+                list.forEach(function (item) {
+                    var id = item.id;
+                    var path = item.method === 'tv' ? 'tv/' + id + '/watch/providers' : 'movie/' + id + '/watch/providers';
+                    var url = Lampa.TMDB.api(path + '?api_key=' + Lampa.TMDB.key());
+                    network.silent(url, function (res) {
+                        if (isStale()) { check(); return; }
+                        var regionData = res && res.results && res.results[region];
+                        var flatrate = regionData && regionData.flatrate;
+                        if (flatrate && flatrate.some(function (p) { return p.provider_id === providerId; })) filtered.push(item);
+                        check();
+                    }, function () { check(); });
+                });
+            }
+
             function startRest() {
                 if (isStale()) return;
                 categories.forEach(function (cat, index) {
                     if (cat.continueWatching) {
                         var list = getContinueWatchingList();
-                        status.append(String(index), { results: list });
+                        filterContinueByService(list, object.service_id, function (filtered) {
+                            if (isStale()) return;
+                            status.append(String(index), { results: filtered });
+                        });
                         return;
                     }
                     if (cat.mergeRequests && cat.mergeRequests.length) {
@@ -403,19 +445,21 @@
                 }
             }
         });
-        var servicesLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_enabled_services_label')) || 'Сервіси в меню';
+        var streamingsLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_enabled_services_label')) || 'Стримінги';
         Lampa.SettingsApi.addParam({
             component: 'streaming_sqr_settings',
             param: { name: STORAGE_ENABLED_SERVICES, type: 'button', default: [] },
-            field: { name: servicesLabel },
+            field: { name: streamingsLabel },
             onChange: function () {
                 var enabled = getEnabledServiceIds();
                 var allIds = Object.keys(SERVICE_CONFIGS);
                 var items = allIds.map(function (sid) {
-                    return { title: SERVICE_CONFIGS[sid].title, value: sid, checkbox: true, checked: enabled.indexOf(sid) !== -1 };
+                    var config = SERVICE_CONFIGS[sid];
+                    var icon = SERVICE_ICONS[sid] || '';
+                    return { title: config.title, value: sid, checkbox: true, checked: enabled.indexOf(sid) !== -1, icon: icon };
                 });
                 Lampa.Select.show({
-                    title: servicesLabel,
+                    title: streamingsLabel,
                     items: items,
                     onCheck: function (item) {
                         var list = getEnabledServiceIds().slice();
@@ -430,23 +474,35 @@
                 });
             }
         });
-        var t = function (key) { return (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(key)) || key; };
-        [
+        var categoriesLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_display_categories_label')) || 'Відображати категорії';
+        var categoryOptions = [
             { key: STORAGE_SHOW_CONTINUE_WATCHING, label: 'streaming_show_continue_watching', default: true },
             { key: STORAGE_SHOW_TRENDING, label: 'streaming_show_trending', default: true },
             { key: STORAGE_SHOW_NEW_SERIES, label: 'streaming_show_new_series', default: true },
             { key: STORAGE_SHOW_NEW_MOVIES, label: 'streaming_show_new_movies', default: true },
             { key: STORAGE_SHOW_EXCLUSIVE, label: 'streaming_show_exclusive', default: true }
-        ].forEach(function (opt) {
-            Lampa.SettingsApi.addParam({
-                component: 'streaming_sqr_settings',
-                param: { name: opt.key, type: 'trigger', default: opt.default },
-                field: { name: t(opt.label) },
-                onChange: function (value) {
-                    Lampa.Storage.set(opt.key, !!value);
-                    if (Lampa.Settings && Lampa.Settings.update) Lampa.Settings.update();
-                }
-            });
+        ];
+        var t = function (key) { return (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(key)) || key; };
+        Lampa.SettingsApi.addParam({
+            component: 'streaming_sqr_settings',
+            param: { name: 'streaming_display_categories', type: 'button', default: null },
+            field: { name: categoriesLabel },
+            onChange: function () {
+                var items = categoryOptions.map(function (opt) {
+                    return { title: t(opt.label), value: opt.key, checkbox: true, checked: isSettingOn(opt.key) };
+                });
+                Lampa.Select.show({
+                    title: categoriesLabel,
+                    items: items,
+                    onCheck: function (item) {
+                        Lampa.Storage.set(item.value, !!item.checked);
+                        if (Lampa.Settings && Lampa.Settings.update) Lampa.Settings.update();
+                    },
+                    onBack: function () {
+                        if (Lampa.Controller && Lampa.Controller.toggle) Lampa.Controller.toggle('settings_component');
+                    }
+                });
+            }
         });
     }
 
