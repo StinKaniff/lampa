@@ -246,6 +246,9 @@
         return Lampa.TMDB.api(url + '?' + arr.join('&'));
     }
 
+    // Lazy load: спочатку показуємо перші N категорій, решту підвантажуємо після
+    var LAZY_LOAD_AFTER = 10;
+
     // Головний екран: рядки категорій по одному сервісу (як StudiosMain)
     function StreamingMain(object) {
         var comp = new Lampa.InteractionMain(object);
@@ -268,7 +271,6 @@
             var sessionId = Date.now();
             comp._streamingSessionId = sessionId;
             var network = new Lampa.Reguest();
-            var status = new Lampa.Status(categories.length);
             var staticDone = false;
             this.activity.loader(true);
 
@@ -308,9 +310,49 @@
                 });
             }
 
-            function startRest() {
+            function buildFullData(data, cats, startIndex) {
+                if (startIndex == null) startIndex = 0;
+                var fulldata = [];
+                Object.keys(data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
+                    var slot = data[key];
+                    var results = (slot && slot.results) ? slot.results.slice(0, 20) : [];
+                    var cat = cats[startIndex + parseInt(key, 10)];
+                    if (!cat || !results.length) return;
+                    Lampa.Utils.extendItemsParams(results, { style: { name: 'wide' } });
+                    var rowTitle = cat.title;
+                    if (cat.title === 'streaming_popular_now') {
+                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_popular_now')) || 'Популярно зараз';
+                        if (rowTitle === 'streaming_popular_now') rowTitle = 'Популярно зараз';
+                    }
+                    if (cat.title === 'streaming_continue_watching') {
+                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_continue_watching')) || 'Продовжити перегляд';
+                        if (rowTitle === 'streaming_continue_watching') rowTitle = 'Продовжити перегляд';
+                    }
+                    fulldata.push({
+                        title: rowTitle,
+                        results: results,
+                        url: cat.url,
+                        params: cat.params
+                    });
+                });
+                return fulldata;
+            }
+
+            function tryBuild(data, cats, startIndex) {
                 if (isStale()) return;
-                categories.forEach(function (cat, index) {
+                if (!staticDone) return;
+                var fulldata = buildFullData(data || status.data, cats || categories, startIndex != null ? startIndex : 0);
+                if (fulldata.length) {
+                    _this.build(fulldata);
+                    _this.activity.loader(false);
+                } else {
+                    _this.empty();
+                }
+            }
+
+            function startRequests(cats, status) {
+                if (isStale()) return;
+                cats.forEach(function (cat, index) {
                     if (cat.continueWatching) {
                         var list = getContinueWatchingList();
                         filterContinueByService(list, object.service_id, function (filtered) {
@@ -341,59 +383,53 @@
                             status.append(String(index), json);
                         }, function () {
                             if (isStale()) return;
+                            status.append(String(index), { results: [] });
                             status.error();
                         });
                     }
                 });
             }
 
-            startRest();
-            tryBuild();
-
-            function buildFullData() {
-                var fulldata = [];
-                Object.keys(status.data).sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).forEach(function (key) {
-                    var data = status.data[key];
-                    var results = (data && data.results) ? data.results.slice(0, 20) : [];
-                    var cat = categories[parseInt(key, 10)];
-                    if (!cat || !results.length) return;
-                    Lampa.Utils.extendItemsParams(results, { style: { name: 'wide' } });
-                    var rowTitle = cat.title;
-                    if (cat.title === 'streaming_popular_now') {
-                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_popular_now')) || 'Популярно зараз';
-                        if (rowTitle === 'streaming_popular_now') rowTitle = 'Популярно зараз';
-                    }
-                    if (cat.title === 'streaming_continue_watching') {
-                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_continue_watching')) || 'Продовжити перегляд';
-                        if (rowTitle === 'streaming_continue_watching') rowTitle = 'Продовжити перегляд';
-                    }
-                    fulldata.push({
-                        title: rowTitle,
-                        results: results,
-                        url: cat.url,
-                        params: cat.params
-                    });
-                });
-                return fulldata;
-            }
-
-            function tryBuild() {
-                if (isStale()) return;
-                if (!staticDone) return;
-                var fulldata = buildFullData();
-                if (fulldata.length) {
-                    _this.build(fulldata);
-                    _this.activity.loader(false);
-                } else {
-                    _this.empty();
+            var status;
+            if (categories.length <= LAZY_LOAD_AFTER) {
+                status = new Lampa.Status(categories.length);
+                startRequests(categories, status);
+                function onStatusComplete() {
+                    if (isStale()) return;
+                    staticDone = true;
+                    tryBuild(status.data, categories, 0);
                 }
+                status.onComplite = onStatusComplete;
+                if (typeof status.onComplete === 'undefined') status.onComplete = onStatusComplete;
+            } else {
+                var firstCats = categories.slice(0, LAZY_LOAD_AFTER);
+                var restCats = categories.slice(LAZY_LOAD_AFTER);
+                status = new Lampa.Status(firstCats.length);
+                startRequests(firstCats, status);
+                function onFirstComplete() {
+                    if (isStale()) return;
+                    staticDone = true;
+                    var firstFulldata = buildFullData(status.data, firstCats, 0);
+                    if (firstFulldata.length) {
+                        _this.build(firstFulldata);
+                        _this.activity.loader(false);
+                    } else {
+                        _this.empty();
+                    }
+                    var statusRest = new Lampa.Status(restCats.length);
+                    function onRestComplete() {
+                        if (isStale()) return;
+                        var restFulldata = buildFullData(statusRest.data, restCats, 0);
+                        var combined = firstFulldata.concat(restFulldata);
+                        if (combined.length) _this.build(combined);
+                    }
+                    statusRest.onComplite = onRestComplete;
+                    if (typeof statusRest.onComplete === 'undefined') statusRest.onComplete = onRestComplete;
+                    startRequests(restCats, statusRest);
+                }
+                status.onComplite = onFirstComplete;
+                if (typeof status.onComplete === 'undefined') status.onComplete = onFirstComplete;
             }
-
-            status.onComplite = function () {
-                if (isStale()) return;
-                staticDone = true;
-                tryBuild();
-            };
 
             return this.render();
         };
@@ -424,11 +460,20 @@
             var _this = this;
             this.activity.loader(true);
             var pending = STREAMING_VIEW_INITIAL_PAGES;
-            var allResults = [];
+            var resultsByPage = [];
             var totalPages = 1;
             var totalResults = 0;
-            function done() {
+            function done(page, json) {
+                if (page != null && json && json.results) {
+                    resultsByPage[page - 1] = json.results;
+                    if (json.total_pages != null) totalPages = json.total_pages;
+                    if (json.total_results != null) totalResults = json.total_results;
+                }
                 if (--pending !== 0) return;
+                var allResults = [];
+                for (var i = 0; i < STREAMING_VIEW_INITIAL_PAGES; i++) {
+                    if (resultsByPage[i]) allResults = allResults.concat(resultsByPage[i]);
+                }
                 initialPagesLoaded = allResults.length ? STREAMING_VIEW_INITIAL_PAGES : 0;
                 _this.build({ page: 1, results: allResults, total_pages: totalPages, total_results: totalResults });
                 _this.activity.loader(false);
@@ -436,11 +481,8 @@
             for (var p = 1; p <= STREAMING_VIEW_INITIAL_PAGES; p++) {
                 (function (page) {
                     network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: page }), function (json) {
-                        if (json && json.results) allResults = allResults.concat(json.results);
-                        if (json && json.total_pages != null) totalPages = json.total_pages;
-                        if (json && json.total_results != null) totalResults = json.total_results;
-                        done();
-                    }, function () { done(); });
+                        done(page, json);
+                    }, function () { done(page, null); });
                 })(p);
             }
             return this.render();
