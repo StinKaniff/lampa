@@ -6,54 +6,37 @@
      * Кожен сервіс — окремі рядки: нові фільми, нові серіали, в тренді тощо.
      */
 
-    function catNewMoviesProvider(providerId, title) {
-        return {
-            title: title || 'Нові фільми',
-            url: 'discover/movie',
-            params: { with_watch_providers: String(providerId), watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' }
-        };
-    }
-    function catNewTvProvider(providerId, title) {
-        return {
-            title: title || 'Нові серіали',
-            url: 'discover/tv',
-            params: { with_watch_providers: String(providerId), watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' }
-        };
-    }
-
-    // Кожен сервіс — окремий «плагін»: своя filterCards(cards, done) для можливого використання.
     var SERVICE_CONFIGS = {
         netflix: {
             title: 'Netflix',
-            filterCards: function (cards, done) { filterCardsByProvider(cards, [8], done); },
             categories: [
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
-                { title: 'Екшн та блокбастери', url: 'discover/movie', params: { with_companies: '213', with_genres: '28,12', sort_by: 'popularity.desc' } },
-                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
-                { title: 'Кримінальні драми', url: 'discover/tv', params: { with_networks: '213', with_genres: '80', sort_by: 'popularity.desc' } },
+                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
                 { title: 'Вибір критиків', url: 'discover/movie', params: { with_companies: '213', 'vote_average.gte': '7.5', 'vote_count.gte': '300', sort_by: 'vote_average.desc' } },
-                { title: 'Природа, космос та наука', url: 'discover/tv', params: { with_networks: '213', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Досліджуй всесвіт', url: 'discover/tv', params: { with_networks: '213', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Історичні та документальні', url: 'discover/tv', params: { with_networks: '213', with_genres: '99,36', sort_by: 'popularity.desc', 'vote_count.gte': '20' } },
                 { title: 'Комедії та ромкоми', url: 'discover/tv', params: { with_networks: '213', with_genres: '35,10749', sort_by: 'popularity.desc' } },
                 { title: 'Трилери', url: 'discover/tv', params: { with_networks: '213', with_genres: '53,9648', sort_by: 'popularity.desc' } }
             ]
         },
         apple: {
             title: 'Apple TV+',
-            filterCards: function (cards, done) { filterCardsByProvider(cards, [350], done); },
             categories: [
-                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '350', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
-                { title: 'Фантастика Apple', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
-                { title: 'Комедії та Feel-good', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '35', sort_by: 'popularity.desc' } },
-                catNewTvProvider(350),
-                catNewMoviesProvider(350),
-                { title: 'Природа, космос та наука', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '99', sort_by: 'popularity.desc' } }
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '10765', sort_by: 'vote_average.desc', 'vote_count.gte': '200' } },
+                { title: 'Нові серіали', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '350', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Вибір критиків', url: 'discover/movie', params: { with_watch_providers: '350', watch_region: 'UA', 'vote_average.gte': '7.5', 'vote_count.gte': '300', sort_by: 'vote_average.desc' } },
+                { title: 'Досліджуй всесвіт', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '99', sort_by: 'popularity.desc' } },
+                { title: 'Історичні та документальні', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '99,36', sort_by: 'popularity.desc', 'vote_count.gte': '20' } },
+                { title: 'Комедії та ромкоми', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '35,10749', sort_by: 'popularity.desc' } },
+                { title: 'Трилери', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: 'UA', with_genres: '53,9648', sort_by: 'popularity.desc' } }
             ]
         },
         hbo: {
             title: 'HBO',
-            filterCards: function (cards, done) { filterCardsByTvNetwork(cards, [49, 3186], done); },
             categories: [
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Max Originals', url: 'discover/tv', params: { with_networks: '3186', sort_by: 'popularity.desc' } },
@@ -68,7 +51,6 @@
         },
         amazon: {
             title: 'Prime Video',
-            filterCards: function (cards, done) { filterCardsByProviderAndNetwork(cards, [119], [1024], done); },
             categories: [
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Екшн та антигерої', url: 'discover/tv', params: { with_networks: '1024', with_genres: '10765,10759', sort_by: 'popularity.desc' } },
@@ -82,7 +64,6 @@
         },
         disney: {
             title: 'Disney+',
-            filterCards: function (cards, done) { filterCardsByProvider(cards, [337], done); },
             categories: [
                 {
                     title: 'streaming_popular_now',
@@ -95,8 +76,8 @@
                 },
                 { title: 'Marvel: Кіновсесвіт', url: 'discover/movie', params: { with_companies: '420', sort_by: 'release_date.desc', 'vote_count.gte': '200' } },
                 { title: 'Зоряні Війни', url: 'discover/movie', params: { with_companies: '1', sort_by: 'release_date.asc' } },
-                catNewTvProvider(337, 'Нові серіали на Disney+'),
-                catNewMoviesProvider(337, 'Нові фільми на Disney+'),
+                { title: 'Нові серіали на Disney+', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '5' } },
+                { title: 'Нові фільми на Disney+', url: 'discover/movie', params: { with_watch_providers: '337', watch_region: 'UA', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '5' } },
                 { title: 'Класика Disney', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc' } },
                 { title: 'Pixar', url: 'discover/movie', params: { with_companies: '3', sort_by: 'popularity.desc' } },
                 { title: 'Анімація', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: 'UA', with_genres: '16', sort_by: 'popularity.desc' } },
@@ -105,7 +86,6 @@
         },
         paramount: {
             title: 'Paramount+',
-            filterCards: function (cards, done) { filterCardsByProvider(cards, [531], done); },
             categories: [
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc' } },
@@ -118,7 +98,6 @@
         },
         origin: {
             title: 'NatGeo',
-            filterCards: function (cards, done) { filterCardsByTvNetwork(cards, [43, 1043], done); },
             categories: [
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { title: 'Космос', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'vote_average.desc', 'vote_count.gte': '50' } },
@@ -155,172 +134,6 @@
         streaming_menu_title: { ru: 'Стриминги', en: 'Streaming', uk: 'Стрімінги' },
         streaming_popular_now: { ru: 'Популярно сейчас', en: 'Popular now', uk: 'Популярно зараз' }
     });
-
-    var FILTER_BATCH_SIZE = 5;
-
-    // Для фільтрації карток за провайдером/мережею регіон не використовуємо — збираємо провайдерів з усіх регіонів
-    function parseProviderIdsFromResponse(json) {
-        var ids = [];
-        var seen = {};
-        if (json && json.results) {
-            Object.keys(json.results).forEach(function (region) {
-                var flat = json.results[region].flatrate;
-                if (flat && flat.length) {
-                    flat.forEach(function (p) {
-                        if (p.provider_id && !seen[p.provider_id]) {
-                            seen[p.provider_id] = true;
-                            ids.push(p.provider_id);
-                        }
-                    });
-                }
-            });
-        }
-        return ids;
-    }
-
-    function parseNetworkIdsFromResponse(json) {
-        var ids = [];
-        if (json && json.networks && json.networks.length) {
-            json.networks.forEach(function (n) { if (n.id) ids.push(n.id); });
-        }
-        return ids;
-    }
-
-    function requestTmdb(path, fallbackPath, parse, callback) {
-        if (!Lampa.Api || !Lampa.Api.sources || !Lampa.Api.sources.tmdb) {
-            callback(null);
-            return;
-        }
-        var api = Lampa.Api.sources.tmdb;
-        api.get(path, {}, function (json) {
-            callback(parse(json));
-        }, function () {
-            if (fallbackPath) {
-                api.get(fallbackPath, {}, function (json2) {
-                    callback(parse(json2));
-                }, function () { callback(null); });
-            } else {
-                callback(null);
-            }
-        });
-    }
-
-    function getProviderIdsForCard(card, callback) {
-        var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
-        var prefix = isTv ? 'tv' : 'movie';
-        var fallback = (isTv ? 'movie' : 'tv') + '/' + card.id + '/watch/providers';
-        requestTmdb(prefix + '/' + card.id + '/watch/providers', fallback, parseProviderIdsFromResponse, callback);
-    }
-
-    function getTvNetworkIds(card, callback) {
-        var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
-        if (!isTv) {
-            callback([]);
-            return;
-        }
-        requestTmdb('tv/' + card.id, null, parseNetworkIdsFromResponse, callback);
-    }
-
-    function filterCardsByTvNetwork(cards, networkIds, done) {
-        if (!networkIds || !networkIds.length || !cards.length) {
-            done(networkIds && networkIds.length ? [] : cards);
-            return;
-        }
-        var out = [];
-        var index = 0;
-        function checkNext() {
-            if (index >= cards.length) {
-                done(out);
-                return;
-            }
-            var batch = cards.slice(index, index + FILTER_BATCH_SIZE);
-            index += FILTER_BATCH_SIZE;
-            var pending = batch.length;
-            batch.forEach(function (card) {
-                getTvNetworkIds(card, function (ids) {
-                    if (ids !== null && ids.length && ids.some(function (id) { return networkIds.indexOf(id) !== -1; })) {
-                        out.push(card);
-                    }
-                    pending--;
-                    if (pending === 0) checkNext();
-                });
-            });
-        }
-        checkNext();
-    }
-
-    function filterCardsByProvider(cards, providerIds, done) {
-        if (!providerIds || providerIds.length === 0) {
-            done(cards);
-            return;
-        }
-        if (!cards.length) {
-            done([]);
-            return;
-        }
-        var out = [];
-        var index = 0;
-
-        function checkNext() {
-            if (index >= cards.length) {
-                done(out);
-                return;
-            }
-            var batch = cards.slice(index, index + FILTER_BATCH_SIZE);
-            index += FILTER_BATCH_SIZE;
-            var pending = batch.length;
-            batch.forEach(function (card) {
-                getProviderIdsForCard(card, function (ids) {
-                    if (ids !== null && ids.length && ids.some(function (id) { return providerIds.indexOf(id) !== -1; })) {
-                        out.push(card);
-                    }
-                    pending--;
-                    if (pending === 0) checkNext();
-                });
-            });
-        }
-        checkNext();
-    }
-
-    // Prime Video: серіали — за мережею 1024, фільми — за провайдером 119 (watch/providers ненадійний для всього)
-    function filterCardsByProviderAndNetwork(cards, providerIds, networkIds, done) {
-        if (!cards.length) {
-            done([]);
-            return;
-        }
-        var out = [];
-        var index = 0;
-        function checkNext() {
-            if (index >= cards.length) {
-                done(out);
-                return;
-            }
-            var batch = cards.slice(index, index + FILTER_BATCH_SIZE);
-            index += FILTER_BATCH_SIZE;
-            var pending = batch.length;
-            batch.forEach(function (card) {
-                var isTv = card.number_of_seasons || card.seasons || card.first_air_date || card.media_type === 'tv';
-                if (isTv) {
-                    getTvNetworkIds(card, function (ids) {
-                        if (ids !== null && ids.length && ids.some(function (id) { return networkIds.indexOf(id) !== -1; })) {
-                            out.push(card);
-                        }
-                        pending--;
-                        if (pending === 0) checkNext();
-                    });
-                } else {
-                    getProviderIdsForCard(card, function (ids) {
-                        if (ids !== null && ids.length && ids.some(function (id) { return providerIds.indexOf(id) !== -1; })) {
-                            out.push(card);
-                        }
-                        pending--;
-                        if (pending === 0) checkNext();
-                    });
-                }
-            });
-        }
-        checkNext();
-    }
 
     function getCurrentDate() {
         var d = new Date();
@@ -478,27 +291,61 @@
         return comp;
     }
 
-    // Додавання пунктів через Lampa.Menu.addButton (як у плагіні newcategory) —
-    // кнопки потрапляють у виділене меню в розділі налаштувань і коректно працюють з фокусом/пультом.
+    // Один пункт меню для одного стрімінгу. Виклик окремо для кожного — щоб меню не було пустим і відображалось вірно.
+    var MENU_ANCHOR = '[data-action="catalog"]';
+    var MENU_ANCHOR_FALLBACK = '[data-action="tv"]';
+    var MENU_ITEM_DELAY_MS = 150;
+
+    function addOneStreamingMenuItem(sid, insertAfter) {
+        var config = SERVICE_CONFIGS[sid];
+        if (!config) return insertAfter;
+        var title = config.title;
+        var icon = SERVICE_ICONS[sid] || ICON_NETFLIX;
+        var dataAction = 'streaming_menu_' + sid;
+        var itemHtml = $(
+            '<li class="menu__item selector" data-action="' + dataAction + '">' +
+            '  <div class="menu__ico">' + icon + '</div>' +
+            '  <div class="menu__text">' + title + '</div>' +
+            '</li>'
+        );
+        itemHtml.on('hover:enter', function () {
+            Lampa.Activity.push({
+                component: 'streaming_main',
+                service_id: sid,
+                title: title,
+                page: 1
+            });
+        });
+        if (insertAfter && insertAfter.length) insertAfter.after(itemHtml);
+        return itemHtml;
+    }
+
     function addStreamingMenuItems() {
+        var menu = Lampa.Menu.render();
+        if (!menu || !menu.length) return;
+        var insertAfter = menu.find(MENU_ANCHOR).length ? menu.find(MENU_ANCHOR) : menu.find(MENU_ANCHOR_FALLBACK);
+        if (!insertAfter.length) insertAfter = menu.find('.menu__item').last();
+
         var serviceIds = Object.keys(SERVICE_CONFIGS);
-        for (var i = 0; i < serviceIds.length; i++) {
-            var sid = serviceIds[i];
-            var config = SERVICE_CONFIGS[sid];
-            if (!config) continue;
-            var title = config.title;
-            var icon = SERVICE_ICONS[sid] || ICON_NETFLIX;
-            (function (serviceId, serviceTitle) {
-                Lampa.Menu.addButton(icon, serviceTitle, function () {
-                    Lampa.Activity.push({
-                        component: 'streaming_main',
-                        service_id: serviceId,
-                        title: serviceTitle,
-                        page: 1
-                    });
-                });
-            })(sid, title);
+        var index = 0;
+
+        function addNext() {
+            if (index >= serviceIds.length) return;
+            var sid = serviceIds[index];
+            index += 1;
+            var menuNow = Lampa.Menu.render();
+            var anchor = menuNow.find(MENU_ANCHOR).length ? menuNow.find(MENU_ANCHOR) : menuNow.find(MENU_ANCHOR_FALLBACK);
+            if (!anchor.length) anchor = menuNow.find('.menu__item').last();
+            // Після першого пункту вставляємо після попереднього стрімінгу
+            if (index > 1) {
+                var prev = menuNow.find('[data-action="streaming_menu_' + serviceIds[index - 2] + '"]');
+                if (prev.length) anchor = prev;
+            }
+            addOneStreamingMenuItem(sid, anchor);
+            if (index < serviceIds.length) setTimeout(addNext, MENU_ITEM_DELAY_MS);
         }
+
+        if (serviceIds.length) addNext();
     }
 
     function init() {
