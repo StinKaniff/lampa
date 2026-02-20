@@ -25,6 +25,7 @@
     var STORAGE_SHOW_EXCLUSIVE = 'streaming_show_exclusive';
     var STORAGE_SHOW_CONTINUE_WATCHING = 'streaming_show_continue_watching';
     var STORAGE_SHOW_POPULAR_NOW = 'streaming_show_popular_now';
+    var STREAMING_MAX_CATEGORIES = 10;
 
     function isSettingOn(key) {
         var v = Lampa.Storage.get(key, true);
@@ -257,6 +258,7 @@
         var categories = config.categories;
         if (categories) {
             categories = categories.filter(function (cat) { return cat.settingKey && isSettingOn(cat.settingKey); });
+            categories = categories.slice(0, STREAMING_MAX_CATEGORIES);
         }
         if (!categories || !categories.length) {
             comp.create = function () { this.empty(); return this.render(); };
@@ -270,19 +272,9 @@
             var network = new Lampa.Reguest();
             var status = new Lampa.Status(categories.length);
             var staticDone = false;
-            var appendCount = 0;
-            var expectedAppends = categories.length;
             this.activity.loader(true);
 
             function isStale() { return comp._streamingSessionId !== sessionId; }
-
-            function onAppend() {
-                appendCount++;
-                if (appendCount >= expectedAppends && !staticDone) {
-                    staticDone = true;
-                    tryBuild();
-                }
-            }
 
             function getContinueWatchingList() {
                 if (!Lampa.Favorite || !Lampa.Favorite.get) return [];
@@ -293,7 +285,7 @@
                 var thrownIds = thrown.map(function (c) { return c.id; });
                 return history.filter(function (e) {
                     return viewedIds.indexOf(e.id) === -1 && thrownIds.indexOf(e.id) === -1;
-                }).slice(0, 20);
+                }).slice(0, 10);
             }
 
             function filterContinueByService(list, serviceId, done) {
@@ -326,7 +318,6 @@
                         filterContinueByService(list, object.service_id, function (filtered) {
                             if (isStale()) return;
                             status.append(String(index), { results: filtered });
-                            onAppend();
                         });
                         return;
                     }
@@ -338,11 +329,11 @@
                                 if (isStale()) return;
                                 if (json && json.results && json.results.length) allResults = allResults.concat(json.results);
                                 pending--;
-                                if (pending === 0) { status.append(String(index), { results: allResults }); onAppend(); }
+                                if (pending === 0) status.append(String(index), { results: allResults });
                             }, function () {
                                 if (isStale()) return;
                                 pending--;
-                                if (pending === 0) { status.append(String(index), { results: allResults }); onAppend(); }
+                                if (pending === 0) status.append(String(index), { results: allResults });
                                 status.error();
                             });
                         });
@@ -350,11 +341,9 @@
                         network.silent(buildDiscoverUrl({ url: cat.url, params: cat.params, page: 1 }), function (json) {
                             if (isStale()) return;
                             status.append(String(index), json);
-                            onAppend();
                         }, function () {
                             if (isStale()) return;
                             status.append(String(index), { results: [] });
-                            onAppend();
                             status.error();
                         });
                     }
@@ -403,13 +392,11 @@
                 }
             }
 
-            function onStatusComplete() {
+            status.onComplite = function () {
                 if (isStale()) return;
                 staticDone = true;
                 tryBuild();
-            }
-            status.onComplite = onStatusComplete;
-            if (typeof status.onComplete === 'undefined') status.onComplete = onStatusComplete;
+            };
 
             return this.render();
         };
@@ -428,50 +415,29 @@
         return comp;
     }
 
-    // Повний список однієї категорії з пагінацією. TMDB: 20 на сторінку; спочатку завантажуємо 3 сторінки (60).
-    var STREAMING_VIEW_INITIAL_PAGES = 3;
-
     function StreamingView(object) {
         var comp = new Lampa.InteractionCategory(object);
         var network = new Lampa.Reguest();
-        var initialPagesLoaded = 0;
 
         comp.create = function () {
             var _this = this;
             this.activity.loader(true);
-            var pending = STREAMING_VIEW_INITIAL_PAGES;
-            var resultsByPage = [];
-            var totalPages = 1;
-            var totalResults = 0;
-            function done(page, json) {
-                if (page != null && json && json.results) {
-                    resultsByPage[page - 1] = json.results;
-                    if (json.total_pages != null) totalPages = json.total_pages;
-                    if (json.total_results != null) totalResults = json.total_results;
-                }
-                if (--pending !== 0) return;
-                var allResults = [];
-                for (var i = 0; i < STREAMING_VIEW_INITIAL_PAGES; i++) {
-                    if (resultsByPage[i]) allResults = allResults.concat(resultsByPage[i]);
-                }
-                initialPagesLoaded = allResults.length ? STREAMING_VIEW_INITIAL_PAGES : 0;
-                _this.build({ page: 1, results: allResults, total_pages: totalPages, total_results: totalResults });
+            network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: 1 }), function (json) {
+                var results = (json && json.results) ? json.results : [];
+                var totalPages = (json && json.total_pages != null) ? json.total_pages : 1;
+                var totalResults = (json && json.total_results != null) ? json.total_results : 0;
+                _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
                 _this.activity.loader(false);
-            }
-            for (var p = 1; p <= STREAMING_VIEW_INITIAL_PAGES; p++) {
-                (function (page) {
-                    network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: page }), function (json) {
-                        done(page, json);
-                    }, function () { done(page, null); });
-                })(p);
-            }
+            }, function () {
+                _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
+                _this.activity.loader(false);
+            });
             return this.render();
         };
 
         function loadNextPage(obj, resolve, reject) {
-            var requestedPage = (obj && obj.page) ? obj.page : 1;
-            var actualPage = initialPagesLoaded ? requestedPage + initialPagesLoaded - 1 : requestedPage;
-            network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: actualPage }), resolve, reject);
+            var page = (obj && obj.page) ? obj.page : 1;
+            network.silent(buildDiscoverUrl({ url: object.url, params: object.params, page: page }), resolve, reject);
         }
         comp.nextPageReuest = loadNextPage;
         comp.nextPageRequest = loadNextPage;
@@ -567,7 +533,8 @@
             param: { name: 'streaming_display_categories', type: 'button', default: null },
             field: { name: categoriesLabel },
             onChange: function () {
-                var items = categoryOptions.map(function (opt) {
+                var options = categoryOptions.slice(0, STREAMING_MAX_CATEGORIES);
+                var items = options.map(function (opt) {
                     return { title: t(opt.label), value: opt.key, checkbox: true, checked: isSettingOn(opt.key) };
                 });
                 Lampa.Select.show({
