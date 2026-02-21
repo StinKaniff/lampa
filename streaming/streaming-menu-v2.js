@@ -351,7 +351,9 @@
         return list;
     }
 
-    function buildStreamingHeader(object, serviceId) {
+    function buildStreamingHeader(object, serviceId, options) {
+        var opts = options || {};
+        var showTag = opts.showTag !== false;
         var header = document.createElement('div');
         header.className = 'streaming-sqr-header';
         header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;';
@@ -367,10 +369,62 @@
                 }
             });
         });
+        header.appendChild(searchBtn);
+        if (showTag) {
+            var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
+            var tagTitle = '';
+            if (object.tagKeywordId) {
+                var found = TAGS.filter(function (t) { return t.id === String(object.tagKeywordId); })[0];
+                tagTitle = found ? ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(found.titleKey)) || found.slug) : '';
+            }
+            var tagBtnText = tagTitle ? tagLabelBase + ': ' + tagTitle : tagLabelBase;
+            var tagBtn = document.createElement('div');
+            tagBtn.className = 'simple-button simple-button--invisible selector';
+            tagBtn.setAttribute('data-action', 'streaming_tag');
+            tagBtn.innerHTML = '<span>' + tagBtnText + '</span>';
+            $(tagBtn).on('hover:enter', function () {
+                var items = TAGS.map(function (t) {
+                    return { title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(t.titleKey)) || t.slug, value: t.id, id: t.id };
+                });
+                items.unshift({ title: '— ' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + ' —', value: '', id: null });
+                Lampa.Select.show({
+                    title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag',
+                    items: items,
+                    onSelect: function (a) {
+                        var next = Object.assign({}, object, { tagKeywordId: a.id || null });
+                        Lampa.Activity.replace(next);
+                    },
+                    onBack: function () { Lampa.Controller.toggle('content'); }
+                });
+            });
+            header.appendChild(tagBtn);
+        }
+        var resetBtn = document.createElement('div');
+        resetBtn.className = 'simple-button simple-button--invisible selector';
+        resetBtn.innerHTML = '<span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + '</span>';
+        $(resetBtn).on('hover:enter', function () {
+            var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null });
+            Lampa.Activity.replace(next);
+        });
+        header.appendChild(resetBtn);
+        return header;
+    }
+
+    function buildStreamingViewTagHeader(object) {
+        var header = document.createElement('div');
+        header.className = 'streaming-sqr-header streaming-sqr-header--view';
+        header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;';
+        var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
+        var tagTitle = '';
+        if (object.tagKeywordId) {
+            var found = TAGS.filter(function (t) { return t.id === String(object.tagKeywordId); })[0];
+            tagTitle = found ? ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(found.titleKey)) || found.slug) : '';
+        }
+        var tagBtnText = tagTitle ? tagLabelBase + ': ' + tagTitle : tagLabelBase;
         var tagBtn = document.createElement('div');
         tagBtn.className = 'simple-button simple-button--invisible selector';
-        tagBtn.setAttribute('data-action', 'streaming_tag');
-        tagBtn.innerHTML = '<span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag') + '</span>';
+        tagBtn.setAttribute('data-action', 'streaming_view_tag');
+        tagBtn.innerHTML = '<span>' + tagBtnText + '</span>';
         $(tagBtn).on('hover:enter', function () {
             var items = TAGS.map(function (t) {
                 return { title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(t.titleKey)) || t.slug, value: t.id, id: t.id };
@@ -380,7 +434,7 @@
                 title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag',
                 items: items,
                 onSelect: function (a) {
-                    var next = Object.assign({}, object, { tagKeywordId: a.id || null });
+                    var next = Object.assign({}, object, { tagKeywordId: a.id || null, page: 1 });
                     Lampa.Activity.replace(next);
                 },
                 onBack: function () { Lampa.Controller.toggle('content'); }
@@ -390,10 +444,9 @@
         resetBtn.className = 'simple-button simple-button--invisible selector';
         resetBtn.innerHTML = '<span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + '</span>';
         $(resetBtn).on('hover:enter', function () {
-            var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null });
+            var next = Object.assign({}, object, { tagKeywordId: null, page: 1 });
             Lampa.Activity.replace(next);
         });
-        header.appendChild(searchBtn);
         header.appendChild(tagBtn);
         header.appendChild(resetBtn);
         return header;
@@ -408,7 +461,8 @@
             return comp;
         }
         comp.create = function () {
-            var categories = buildEffectiveCategories(serviceId, object);
+            var mainObject = Object.assign({}, object, { tagKeywordId: null });
+            var categories = buildEffectiveCategories(serviceId, mainObject);
             if (!categories.length) {
                 this.empty();
                 return this.render();
@@ -499,7 +553,7 @@
                     _this.build(fulldata);
                     var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
                     if (root) {
-                        var headerEl = buildStreamingHeader(object, serviceId);
+                        var headerEl = buildStreamingHeader(object, serviceId, { showTag: false });
                         if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
                     }
                     _this.activity.loader(false);
@@ -523,7 +577,8 @@
                 params: data.params,
                 title: data.title,
                 component: 'streaming_view',
-                page: 1
+                page: 1,
+                tagKeywordId: object.tagKeywordId || null
             });
         };
         return comp;
@@ -532,28 +587,44 @@
     function StreamingView(object) {
         var comp = new Lampa.InteractionCategory(object);
         var network = new Lampa.Reguest();
+        function getViewParams() {
+            var params = Object.assign({}, object.params || {});
+            if (object.url && object.url.indexOf('discover/') !== -1 && !params.with_origin_country) params.with_origin_country = ORIGIN_COUNTRIES_NO_ASIA;
+            if (object.tagKeywordId) params.with_keywords = object.tagKeywordId;
+            return params;
+        }
         comp.create = function () {
             var _this = this;
             this.activity.loader(true);
             var url = object.url;
-            var params = object.params || {};
-            if (url.indexOf('discover/') !== -1 && !params.with_origin_country) params.with_origin_country = ORIGIN_COUNTRIES_NO_ASIA;
+            var params = getViewParams();
             var fullUrl = buildDiscoverUrl(url, params, 1);
             network.silent(fullUrl, function (json) {
                 var results = (json && json.results) ? json.results : [];
                 var totalPages = (json && json.total_pages != null) ? json.total_pages : 1;
                 var totalResults = (json && json.total_results != null) ? json.total_results : 0;
                 _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
+                var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
+                if (root) {
+                    var headerEl = buildStreamingViewTagHeader(object);
+                    if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
+                }
                 _this.activity.loader(false);
             }, function () {
                 _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
+                var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
+                if (root) {
+                    var headerEl = buildStreamingViewTagHeader(object);
+                    if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
+                }
                 _this.activity.loader(false);
             });
             return this.render();
         };
         function loadNextPage(obj, resolve, reject) {
             var page = (obj && obj.page) ? obj.page : 1;
-            network.silent(buildDiscoverUrl(object.url, object.params || {}, page), resolve, reject);
+            var params = getViewParams();
+            network.silent(buildDiscoverUrl(object.url, params, page), resolve, reject);
         }
         comp.nextPageReuest = loadNextPage;
         comp.nextPageRequest = loadNextPage;
