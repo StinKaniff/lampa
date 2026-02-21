@@ -5,14 +5,106 @@
     var STORAGE_WATCH_REGION = 'streaming_watch_region';
     var STORAGE_ENABLED_SERVICES = 'streaming_enabled_services';
     var MAX_CATEGORIES = 25;
+    var STREAMING_BASE = (function () { try { var s = document.currentScript; return s && s.src ? s.src.replace(/\/[^/]*$/, '/') : ''; } catch (e) { return ''; } })();
 
-    // TMDB keyword IDs for tag filter (id-slug format from user)
-    var TAGS = [
-        { id: '5096', slug: 'natural-disaster', titleKey: 'streaming_tag_natural_disaster' },
-        { id: '363309', slug: 'star-wars', titleKey: 'streaming_tag_star_wars' },
-        { id: '161176', slug: 'space-opera', titleKey: 'streaming_tag_space_opera' },
-        { id: '818', slug: 'based-on-novel-or-book', titleKey: 'streaming_tag_based_on_novel' }
+    // TMDB keyword IDs for tag filter, grouped by category
+    var TAGS_BY_CATEGORY = [
+        {
+            categoryTitleKey: 'streaming_tag_cat_fantasy',
+            tags: [
+                { id: '2964', titleKey: 'streaming_tag_future' },
+                { id: '4379', titleKey: 'streaming_tag_time_travel' },
+                { id: '4565', titleKey: 'streaming_tag_dystopia' },
+                { id: '12332', titleKey: 'streaming_tag_apocalypse' },
+                { id: '186565', titleKey: 'streaming_tag_zombie_apocalypse' },
+                { id: '3386', titleKey: 'streaming_tag_space_war' },
+                { id: '10158', titleKey: 'streaming_tag_alien_world' },
+                { id: '9715', titleKey: 'streaming_tag_superheroes' },
+                { id: '1299', titleKey: 'streaming_tag_monsters' },
+                { id: '767', titleKey: 'streaming_tag_witches' },
+                { id: '12377', titleKey: 'streaming_tag_zombie' },
+                { id: '1718', titleKey: 'streaming_tag_mutations' },
+                { id: '1720', titleKey: 'streaming_tag_dinosaurs' },
+                { id: '12554', titleKey: 'streaming_tag_dragons' },
+                { id: '195114', titleKey: 'streaming_tag_space_adventure' },
+                { id: '161176', titleKey: 'streaming_tag_space_opera' },
+                { id: '9935', titleKey: 'streaming_tag_journey' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_action',
+            tags: [
+                { id: '9748', titleKey: 'streaming_tag_vengeance' },
+                { id: '14643', titleKey: 'streaming_tag_battle' },
+                { id: '14796', titleKey: 'streaming_tag_destruction' },
+                { id: '14819', titleKey: 'streaming_tag_violence' },
+                { id: '13065', titleKey: 'streaming_tag_soldier' },
+                { id: '11399', titleKey: 'streaming_tag_marines' },
+                { id: '949', titleKey: 'streaming_tag_terrorism' },
+                { id: '160381', titleKey: 'streaming_tag_nuclear_threat' },
+                { id: '258', titleKey: 'streaming_tag_explosion' },
+                { id: '10039', titleKey: 'streaming_tag_racing' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_spy',
+            tags: [
+                { id: '470', titleKey: 'streaming_tag_spy' },
+                { id: '4289', titleKey: 'streaming_tag_secret_agent' },
+                { id: '14555', titleKey: 'streaming_tag_mi6' },
+                { id: '156095', titleKey: 'streaming_tag_british_intelligence' },
+                { id: '10092', titleKey: 'streaming_tag_mystery' },
+                { id: '156082', titleKey: 'streaming_tag_heist' },
+                { id: '726', titleKey: 'streaming_tag_drug_addiction' },
+                { id: '853', titleKey: 'streaming_tag_crime_fighter' },
+                { id: '9990', titleKey: 'streaming_tag_femme_fatale' },
+                { id: '10044', titleKey: 'streaming_tag_tragic_hero' },
+                { id: '2095', titleKey: 'streaming_tag_antihero' },
+                { id: '189402', titleKey: 'streaming_tag_criminal_investigation' },
+                { id: '10909', titleKey: 'streaming_tag_lawyer' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_narrative',
+            tags: [
+                { id: '818', titleKey: 'streaming_tag_based_on_novel' },
+                { id: '9663', titleKey: 'streaming_tag_sequel' },
+                { id: '180635', titleKey: 'streaming_tag_multiple_pov' },
+                { id: '1463', titleKey: 'streaming_tag_culture_clash' }
+            ]
+        }
     ];
+
+    function getAllTagsFlat() {
+        var out = [];
+        for (var i = 0; i < TAGS_BY_CATEGORY.length; i++) {
+            var cat = TAGS_BY_CATEGORY[i];
+            if (cat && cat.tags) {
+                for (var j = 0; j < cat.tags.length; j++) out.push(cat.tags[j]);
+            }
+        }
+        return out;
+    }
+
+    function getTagSelectItems() {
+        var translate = function (k) { return (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(k)) || k; };
+        var resetTitle = '— ' + (translate('streaming_reset_filters') || 'Reset') + ' —';
+        var items = [{ title: resetTitle, value: '', id: null }];
+        for (var i = 0; i < TAGS_BY_CATEGORY.length; i++) {
+            var cat = TAGS_BY_CATEGORY[i];
+            if (!cat || !cat.tags) continue;
+            items.push({ title: translate(cat.categoryTitleKey) || cat.categoryTitleKey, value: null, id: null, header: true });
+            for (var j = 0; j < cat.tags.length; j++) {
+                var t = cat.tags[j];
+                items.push({
+                    title: translate(t.titleKey) || t.titleKey,
+                    value: t.id,
+                    id: t.id
+                });
+            }
+        }
+        return items;
+    }
 
     function getWatchRegion() {
         var s = Lampa.Storage.get(STORAGE_WATCH_REGION);
@@ -283,10 +375,54 @@
         streaming_search_results: { en: 'Search results', uk: 'Результати пошуку' },
         streaming_tag_label: { en: 'Tag', uk: 'Тег' },
         streaming_reset_filters: { en: 'Reset', uk: 'Скинути' },
-        streaming_tag_natural_disaster: { en: 'Natural disaster', uk: 'Стихійні лиха' },
-        streaming_tag_star_wars: { en: 'Star Wars', uk: 'Зоряні війни' },
+        streaming_tag_cat_fantasy: { en: 'Sci‑Fi & Supernatural', uk: 'Фантастика та Надприродне' },
+        streaming_tag_cat_action: { en: 'Action & War', uk: 'Екшен та Війна' },
+        streaming_tag_cat_spy: { en: 'Spy & Crime', uk: 'Шпигунство та Кримінал' },
+        streaming_tag_cat_narrative: { en: 'Narrative & Social', uk: 'Наратив та Соціальні Теми' },
+        streaming_tag_future: { en: 'Future', uk: 'Майбутнє' },
+        streaming_tag_time_travel: { en: 'Time travel', uk: 'Подорожі в часі' },
+        streaming_tag_dystopia: { en: 'Dystopia', uk: 'Антиутопія' },
+        streaming_tag_apocalypse: { en: 'Apocalypse', uk: 'Апокаліпсис' },
+        streaming_tag_zombie_apocalypse: { en: 'Zombie apocalypse', uk: 'Зомбі-апокаліпсис' },
+        streaming_tag_space_war: { en: 'Space war', uk: 'Космічна війна' },
+        streaming_tag_alien_world: { en: 'Alien world', uk: 'Інопланетний світ' },
+        streaming_tag_superheroes: { en: 'Superheroes', uk: 'Супергерої' },
+        streaming_tag_monsters: { en: 'Monsters', uk: 'Монстри' },
+        streaming_tag_witches: { en: 'Witches', uk: 'Відьми' },
+        streaming_tag_zombie: { en: 'Zombie', uk: 'Зомбі' },
+        streaming_tag_mutations: { en: 'Mutations', uk: 'Мутації' },
+        streaming_tag_dinosaurs: { en: 'Dinosaurs', uk: 'Динозаври' },
+        streaming_tag_dragons: { en: 'Dragons', uk: 'Дракони' },
+        streaming_tag_space_adventure: { en: 'Space adventure', uk: 'Космічна пригода' },
         streaming_tag_space_opera: { en: 'Space opera', uk: 'Космічна опера' },
-        streaming_tag_based_on_novel: { en: 'Based on novel or book', uk: 'За книгою' }
+        streaming_tag_journey: { en: 'Journey', uk: 'Подорож' },
+        streaming_tag_vengeance: { en: 'Vengeance', uk: 'Помста' },
+        streaming_tag_battle: { en: 'Battle', uk: 'Битва' },
+        streaming_tag_destruction: { en: 'Destruction', uk: 'Руйнування' },
+        streaming_tag_violence: { en: 'Violence', uk: 'Жорстокість' },
+        streaming_tag_soldier: { en: 'Soldier', uk: 'Солдат' },
+        streaming_tag_marines: { en: 'Marines', uk: 'Морська піхота' },
+        streaming_tag_terrorism: { en: 'Terrorism', uk: 'Тероризм' },
+        streaming_tag_nuclear_threat: { en: 'Nuclear threat', uk: 'Ядерна загроза' },
+        streaming_tag_explosion: { en: 'Explosion', uk: 'Вибух' },
+        streaming_tag_racing: { en: 'Racing', uk: 'Перегони' },
+        streaming_tag_spy: { en: 'Spy', uk: 'Шпигунство' },
+        streaming_tag_secret_agent: { en: 'Secret agent', uk: 'Таємний агент' },
+        streaming_tag_mi6: { en: 'MI6', uk: 'MI6' },
+        streaming_tag_british_intelligence: { en: 'British intelligence', uk: 'Британська розвідка' },
+        streaming_tag_mystery: { en: 'Mystery', uk: 'Таємниця' },
+        streaming_tag_heist: { en: 'Heist', uk: 'Професійний крадій' },
+        streaming_tag_drug_addiction: { en: 'Drug addiction', uk: 'Наркозалежність' },
+        streaming_tag_crime_fighter: { en: 'Crime fighter', uk: 'Борець зі злочинністю' },
+        streaming_tag_femme_fatale: { en: 'Femme fatale', uk: 'Лиходійка' },
+        streaming_tag_tragic_hero: { en: 'Tragic hero', uk: 'Трагічний герой' },
+        streaming_tag_antihero: { en: 'Antihero', uk: 'Антигерой' },
+        streaming_tag_criminal_investigation: { en: 'Criminal investigation', uk: 'Кримінальне розслідування' },
+        streaming_tag_lawyer: { en: 'Lawyer', uk: 'Адвокат' },
+        streaming_tag_based_on_novel: { en: 'Based on book', uk: 'Екранізація книги' },
+        streaming_tag_sequel: { en: 'Sequel', uk: 'Сиквел' },
+        streaming_tag_multiple_pov: { en: 'Multiple points of view', uk: 'Кілька точок зору' },
+        streaming_tag_culture_clash: { en: 'Culture clash', uk: 'Зіткнення культур' }
     });
 
     var WATCH_REGIONS = [
@@ -374,23 +510,20 @@
             var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
             var tagTitle = '';
             if (object.tagKeywordId) {
-                var found = TAGS.filter(function (t) { return t.id === String(object.tagKeywordId); })[0];
-                tagTitle = found ? ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(found.titleKey)) || found.slug) : '';
+                var found = getAllTagsFlat().filter(function (t) { return t.id === String(object.tagKeywordId); })[0];
+                tagTitle = found ? ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(found.titleKey)) || found.titleKey) : '';
             }
             var tagBtnText = tagTitle ? tagLabelBase + ': ' + tagTitle : tagLabelBase;
             var tagBtn = document.createElement('div');
             tagBtn.className = 'simple-button simple-button--invisible selector';
             tagBtn.setAttribute('data-action', 'streaming_tag');
-            tagBtn.innerHTML = '<span>' + tagBtnText + '</span>';
+            tagBtn.innerHTML = '<img src="' + STREAMING_BASE + 'img/tag.svg" width="22" height="22" style="flex-shrink:0" aria-hidden="true"><span>' + tagBtnText + '</span>';
             $(tagBtn).on('hover:enter', function () {
-                var items = TAGS.map(function (t) {
-                    return { title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(t.titleKey)) || t.slug, value: t.id, id: t.id };
-                });
-                items.unshift({ title: '— ' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + ' —', value: '', id: null });
                 Lampa.Select.show({
                     title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag',
-                    items: items,
+                    items: getTagSelectItems(),
                     onSelect: function (a) {
+                        if (a && a.header) return;
                         var next = Object.assign({}, object, { tagKeywordId: a.id || null });
                         Lampa.Activity.replace(next);
                     },
@@ -401,7 +534,8 @@
         }
         var resetBtn = document.createElement('div');
         resetBtn.className = 'simple-button simple-button--invisible selector';
-        resetBtn.innerHTML = '<span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + '</span>';
+        resetBtn.innerHTML = '<img src="' + STREAMING_BASE + 'img/clean.svg" width="22" height="22" style="opacity:0.5" aria-hidden="true">';
+        resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
         $(resetBtn).on('hover:enter', function () {
             var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null });
             Lampa.Activity.replace(next);
@@ -410,44 +544,58 @@
         return header;
     }
 
-    function buildStreamingViewTagHeader(object) {
+    function buildStreamingViewHeader(object) {
         var header = document.createElement('div');
         header.className = 'streaming-sqr-header streaming-sqr-header--view';
         header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;';
+        var searchLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_search')) || 'Search';
+        var searchQuery = (object.searchQuery && object.searchQuery.trim) ? object.searchQuery.trim() : '';
+        var searchBtnText = searchQuery ? searchLabelBase + ': ' + searchQuery : searchLabelBase;
+        var searchBtn = document.createElement('div');
+        searchBtn.className = 'simple-button simple-button--invisible selector';
+        searchBtn.setAttribute('data-action', 'streaming_view_search');
+        searchBtn.innerHTML = '<svg width="23" height="22" viewBox="0 0 23 22" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="9.9964" cy="9.63489" r="8.43556" stroke="currentColor" stroke-width="2.4"></circle><path d="M20.7768 20.4334L18.2135 17.8701" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg><span>' + searchBtnText + '</span>';
+        $(searchBtn).on('hover:enter', function () {
+            Lampa.Input.edit({ free: true, nosave: true, nomic: true, value: object.searchQuery || '' }, function (val) {
+                if (val != null) {
+                    var next = Object.assign({}, object, { searchQuery: (val && val.trim()) ? val.trim() : '', page: 1 });
+                    Lampa.Activity.replace(next);
+                }
+            });
+        });
+        header.appendChild(searchBtn);
         var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
         var tagTitle = '';
         if (object.tagKeywordId) {
-            var found = TAGS.filter(function (t) { return t.id === String(object.tagKeywordId); })[0];
-            tagTitle = found ? ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(found.titleKey)) || found.slug) : '';
+            var found = getAllTagsFlat().filter(function (t) { return t.id === String(object.tagKeywordId); })[0];
+            tagTitle = found ? ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(found.titleKey)) || found.titleKey) : '';
         }
         var tagBtnText = tagTitle ? tagLabelBase + ': ' + tagTitle : tagLabelBase;
         var tagBtn = document.createElement('div');
         tagBtn.className = 'simple-button simple-button--invisible selector';
         tagBtn.setAttribute('data-action', 'streaming_view_tag');
-        tagBtn.innerHTML = '<span>' + tagBtnText + '</span>';
+        tagBtn.innerHTML = '<img src="' + STREAMING_BASE + 'img/tag.svg" width="22" height="22" style="flex-shrink:0" aria-hidden="true"><span>' + tagBtnText + '</span>';
         $(tagBtn).on('hover:enter', function () {
-            var items = TAGS.map(function (t) {
-                return { title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(t.titleKey)) || t.slug, value: t.id, id: t.id };
-            });
-            items.unshift({ title: '— ' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + ' —', value: '', id: null });
             Lampa.Select.show({
                 title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag',
-                items: items,
+                items: getTagSelectItems(),
                 onSelect: function (a) {
+                    if (a && a.header) return;
                     var next = Object.assign({}, object, { tagKeywordId: a.id || null, page: 1 });
                     Lampa.Activity.replace(next);
                 },
                 onBack: function () { Lampa.Controller.toggle('content'); }
             });
         });
+        header.appendChild(tagBtn);
         var resetBtn = document.createElement('div');
         resetBtn.className = 'simple-button simple-button--invisible selector';
-        resetBtn.innerHTML = '<span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + '</span>';
+        resetBtn.innerHTML = '<img src="' + STREAMING_BASE + 'img/clean.svg" width="22" height="22" style="opacity:0.5" aria-hidden="true">';
+        resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
         $(resetBtn).on('hover:enter', function () {
-            var next = Object.assign({}, object, { tagKeywordId: null, page: 1 });
+            var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null, page: 1 });
             Lampa.Activity.replace(next);
         });
-        header.appendChild(tagBtn);
         header.appendChild(resetBtn);
         return header;
     }
@@ -461,7 +609,7 @@
             return comp;
         }
         comp.create = function () {
-            var mainObject = Object.assign({}, object, { tagKeywordId: null });
+            var mainObject = Object.assign({}, object, { tagKeywordId: null, searchQuery: '' });
             var categories = buildEffectiveCategories(serviceId, mainObject);
             if (!categories.length) {
                 this.empty();
@@ -551,11 +699,6 @@
                 var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
-                    var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
-                    if (root) {
-                        var headerEl = buildStreamingHeader(object, serviceId, { showTag: false });
-                        if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
-                    }
                     _this.activity.loader(false);
                 } else {
                     _this.empty();
@@ -578,7 +721,8 @@
                 title: data.title,
                 component: 'streaming_view',
                 page: 1,
-                tagKeywordId: object.tagKeywordId || null
+                tagKeywordId: object.tagKeywordId || null,
+                searchQuery: object.searchQuery || ''
             });
         };
         return comp;
@@ -593,38 +737,64 @@
             if (object.tagKeywordId) params.with_keywords = object.tagKeywordId;
             return params;
         }
+        function prependViewHeader(_this) {
+            var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
+            if (root) {
+                var headerEl = buildStreamingViewHeader(object);
+                if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
+            }
+        }
         comp.create = function () {
             var _this = this;
             this.activity.loader(true);
-            var url = object.url;
-            var params = getViewParams();
-            var fullUrl = buildDiscoverUrl(url, params, 1);
-            network.silent(fullUrl, function (json) {
-                var results = (json && json.results) ? json.results : [];
-                var totalPages = (json && json.total_pages != null) ? json.total_pages : 1;
-                var totalResults = (json && json.total_results != null) ? json.total_results : 0;
-                _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
-                var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
-                if (root) {
-                    var headerEl = buildStreamingViewTagHeader(object);
-                    if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
-                }
-                _this.activity.loader(false);
-            }, function () {
-                _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
-                var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
-                if (root) {
-                    var headerEl = buildStreamingViewTagHeader(object);
-                    if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
-                }
-                _this.activity.loader(false);
-            });
+            var searchQuery = (object.searchQuery && object.searchQuery.trim) ? object.searchQuery.trim() : '';
+            if (searchQuery) {
+                var fullUrl = buildSearchUrl(searchQuery, 1);
+                network.silent(fullUrl, function (json) {
+                    var raw = (json && json.results) ? json.results : [];
+                    var results = raw.filter(function (r) { return r && (r.media_type === 'tv' || r.media_type === 'movie'); });
+                    var totalPages = (json && json.total_pages != null) ? json.total_pages : 1;
+                    var totalResults = (json && json.total_results != null) ? json.total_results : results.length;
+                    _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
+                    prependViewHeader(_this);
+                    _this.activity.loader(false);
+                }, function () {
+                    _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
+                    prependViewHeader(_this);
+                    _this.activity.loader(false);
+                });
+            } else {
+                var url = object.url;
+                var params = getViewParams();
+                var fullUrl = buildDiscoverUrl(url, params, 1);
+                network.silent(fullUrl, function (json) {
+                    var results = (json && json.results) ? json.results : [];
+                    var totalPages = (json && json.total_pages != null) ? json.total_pages : 1;
+                    var totalResults = (json && json.total_results != null) ? json.total_results : 0;
+                    _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
+                    prependViewHeader(_this);
+                    _this.activity.loader(false);
+                }, function () {
+                    _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
+                    prependViewHeader(_this);
+                    _this.activity.loader(false);
+                });
+            }
             return this.render();
         };
         function loadNextPage(obj, resolve, reject) {
             var page = (obj && obj.page) ? obj.page : 1;
-            var params = getViewParams();
-            network.silent(buildDiscoverUrl(object.url, params, page), resolve, reject);
+            var searchQuery = (object.searchQuery && object.searchQuery.trim) ? object.searchQuery.trim() : '';
+            if (searchQuery) {
+                network.silent(buildSearchUrl(searchQuery, page), function (json) {
+                    var raw = (json && json.results) ? json.results : [];
+                    var results = raw.filter(function (r) { return r && (r.media_type === 'tv' || r.media_type === 'movie'); });
+                    resolve({ results: results, total_pages: json.total_pages || 1, total_results: json.total_results || 0 });
+                }, reject);
+            } else {
+                var params = getViewParams();
+                network.silent(buildDiscoverUrl(object.url, params, page), resolve, reject);
+            }
         }
         comp.nextPageReuest = loadNextPage;
         comp.nextPageRequest = loadNextPage;
