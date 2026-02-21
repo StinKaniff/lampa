@@ -558,6 +558,7 @@
         streaming_search_results: { en: 'Search results', uk: 'Результати пошуку' },
         streaming_tag_label: { en: 'Tag', uk: 'Тег' },
         streaming_reset_filters: { en: 'Reset', uk: 'Скинути' },
+        streaming_clear_filters: { en: 'Clear', uk: 'Очистити' },
         streaming_tag_cat_fantasy_future: { en: 'Sci‑Fi & Future', uk: 'Фантастика та Майбутнє' },
         streaming_tag_cat_monsters: { en: 'Monsters & Creatures', uk: 'Монстри та Істоти' },
         streaming_tag_cat_narrative: { en: 'Narrative & Plot', uk: 'Наратив та Сюжет' },
@@ -720,7 +721,7 @@
         var showTag = opts.showTag !== false;
         var header = document.createElement('div');
         header.className = 'streaming-sqr-header';
-        header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;';
+        header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:nowrap;width:100%;box-sizing:border-box;';
         var searchBtn = document.createElement('div');
         searchBtn.className = 'simple-button simple-button--invisible selector';
         searchBtn.setAttribute('data-action', 'streaming_search');
@@ -733,7 +734,13 @@
                 }
             });
         });
-        header.appendChild(searchBtn);
+        var searchWrap = document.createElement('div');
+        searchWrap.style.cssText = 'flex:0 0 25%;min-width:120px;';
+        searchWrap.appendChild(searchBtn);
+        header.appendChild(searchWrap);
+        var indentSpacer = document.createElement('div');
+        indentSpacer.style.cssText = 'width:28px;flex-shrink:0;';
+        header.appendChild(indentSpacer);
         if (showTag) {
             var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
             var tagTitle = '';
@@ -749,9 +756,13 @@
             $(tagBtn).on('hover:enter', function () { showTagCategorySelect(object, false); });
             header.appendChild(tagBtn);
         }
+        var rightSpacer = document.createElement('div');
+        rightSpacer.style.cssText = 'flex:1 1 0;min-width:12px;';
+        header.appendChild(rightSpacer);
+        var clearLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_clear_filters')) || (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Clear';
         var resetBtn = document.createElement('div');
         resetBtn.className = 'simple-button simple-button--invisible selector';
-        resetBtn.innerHTML = ICON_CLEAN_SVG;
+        resetBtn.innerHTML = ICON_CLEAN_SVG + '<span>' + clearLabel + '</span>';
         resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
         $(resetBtn).on('hover:enter', function () {
             var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null });
@@ -764,7 +775,7 @@
     function buildStreamingViewHeader(object) {
         var header = document.createElement('div');
         header.className = 'streaming-sqr-header streaming-sqr-header--view';
-        header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;';
+        header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:nowrap;width:100%;box-sizing:border-box;';
         var searchLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_search')) || 'Search';
         var searchQuery = (object.searchQuery && object.searchQuery.trim) ? object.searchQuery.trim() : '';
         var searchBtnText = searchQuery ? searchLabelBase + ': ' + searchQuery : searchLabelBase;
@@ -780,20 +791,13 @@
                 }
             });
         });
-        header.appendChild(searchBtn);
-        var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
-        var tagTitle = '';
-        if (object.tagKeywordId) {
-            var found = getAllTagsFlat().filter(function (t) { return t.id === String(object.tagKeywordId); })[0];
-            tagTitle = found ? ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(found.titleKey)) || found.titleKey) : '';
-        }
-        var tagBtnText = tagTitle ? tagLabelBase + ': ' + tagTitle : tagLabelBase;
-        var tagBtn = document.createElement('div');
-        tagBtn.className = 'simple-button simple-button--invisible selector';
-        tagBtn.setAttribute('data-action', 'streaming_view_tag');
-        tagBtn.innerHTML = ICON_TAG_SVG + '<span>' + tagBtnText + '</span>';
-        $(tagBtn).on('hover:enter', function () { showTagCategorySelect(object, true); });
-        header.appendChild(tagBtn);
+        var searchWrap = document.createElement('div');
+        searchWrap.style.cssText = 'flex:0 0 25%;min-width:120px;';
+        searchWrap.appendChild(searchBtn);
+        header.appendChild(searchWrap);
+        var indentSpacer = document.createElement('div');
+        indentSpacer.style.cssText = 'width:28px;flex-shrink:0;';
+        header.appendChild(indentSpacer);
         var genreLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_genre_label')) || 'Genre';
         var genreTitle = '';
         if (object.genreId != null) {
@@ -807,6 +811,19 @@
         genreBtn.innerHTML = ICON_GENRE_SVG + '<span>' + genreBtnText + '</span>';
         $(genreBtn).on('hover:enter', function () { showGenreSelect(object, true); });
         header.appendChild(genreBtn);
+        var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
+        var tagTitle = '';
+        if (object.tagKeywordId) {
+            var found = getAllTagsFlat().filter(function (t) { return t.id === String(object.tagKeywordId); })[0];
+            tagTitle = found ? ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(found.titleKey)) || found.titleKey) : '';
+        }
+        var tagBtnText = tagTitle ? tagLabelBase + ': ' + tagTitle : tagLabelBase;
+        var tagBtn = document.createElement('div');
+        tagBtn.className = 'simple-button simple-button--invisible selector';
+        tagBtn.setAttribute('data-action', 'streaming_view_tag');
+        tagBtn.innerHTML = ICON_TAG_SVG + '<span>' + tagBtnText + '</span>';
+        $(tagBtn).on('hover:enter', function () { showTagCategorySelect(object, true); });
+        header.appendChild(tagBtn);
         var countryLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_country_label')) || 'Country';
         var countryTitle = '';
         if (object.originCountry) {
@@ -820,9 +837,13 @@
         countryBtn.innerHTML = ICON_COUNTRY_SVG + '<span>' + countryBtnText + '</span>';
         $(countryBtn).on('hover:enter', function () { showCountrySelect(object, true); });
         header.appendChild(countryBtn);
+        var rightSpacer = document.createElement('div');
+        rightSpacer.style.cssText = 'flex:1 1 0;min-width:12px;';
+        header.appendChild(rightSpacer);
+        var clearLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_clear_filters')) || (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Clear';
         var resetBtn = document.createElement('div');
         resetBtn.className = 'simple-button simple-button--invisible selector';
-        resetBtn.innerHTML = ICON_CLEAN_SVG;
+        resetBtn.innerHTML = ICON_CLEAN_SVG + '<span>' + clearLabel + '</span>';
         resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
         $(resetBtn).on('hover:enter', function () {
             var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null, genreId: null, originCountry: null, page: 1 });
