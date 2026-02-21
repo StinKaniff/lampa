@@ -420,8 +420,8 @@
             mergeTvMovieTrending: false,
             exclusives: [
                 { titleKey: 'streaming_netflix_original', mergeRequests: [
-                    { url: 'discover/tv', params: { with_networks: '213', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
-                    { url: 'discover/movie', params: { with_companies: '213', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
+                    { url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/movie', params: { with_companies: '213', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
                 ]}
             ]
         },
@@ -431,8 +431,8 @@
             mergeTvMovieTrending: false,
             exclusives: [
                 { titleKey: 'streaming_apple_original', mergeRequests: [
-                    { url: 'discover/tv', params: { with_companies: '284', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
-                    { url: 'discover/movie', params: { with_companies: '284', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
+                    { url: 'discover/tv', params: { with_companies: '284', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/movie', params: { with_companies: '284', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
                 ]}
             ]
         },
@@ -442,8 +442,8 @@
             mergeTvMovieTrending: false,
             exclusives: [
                 { titleKey: 'streaming_max_originals', mergeRequests: [
-                    { url: 'discover/tv', params: { with_networks: '3186', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
-                    { url: 'discover/movie', params: { with_companies: '2739', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
+                    { url: 'discover/tv', params: { with_networks: '3186', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/movie', params: { with_companies: '2739', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
                 ]},
                 { titleKey: 'streaming_hbo_gold', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
             ]
@@ -454,8 +454,8 @@
             mergeTvMovieTrending: false,
             exclusives: [
                 { titleKey: 'streaming_prime_original', mergeRequests: [
-                    { url: 'discover/tv', params: { with_networks: '1024', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
-                    { url: 'discover/movie', params: { with_companies: '3192', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
+                    { url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/movie', params: { with_companies: '3192', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
                 ]}
             ]
         },
@@ -466,8 +466,8 @@
             mergeTvMovieTrending: true,
             exclusives: [
                 { titleKey: 'streaming_disney_original', mergeRequests: [
-                    { url: 'discover/tv', params: { with_networks: '2739', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
-                    { url: 'discover/movie', params: { with_companies: '6125', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
+                    { url: 'discover/tv', params: { with_networks: '2739', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
                 ]},
                 { titleKey: 'streaming_disney_classic', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { titleKey: 'streaming_pixar', url: 'discover/movie', params: { with_companies: '3', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
@@ -480,8 +480,8 @@
             mergeTvMovieTrending: false,
             exclusives: [
                 { titleKey: 'streaming_paramount_originals', mergeRequests: [
-                    { url: 'discover/tv', params: { with_networks: '4330', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
-                    { url: 'discover/movie', params: { with_companies: '4', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
+                    { url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/movie', params: { with_companies: '4', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
                 ]},
                 { titleKey: 'streaming_yellowstone', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { titleKey: 'streaming_paramount_blockbusters', url: 'discover/movie', params: { with_companies: '4', sort_by: 'popularity.desc', 'vote_count.gte': '10', 'vote_average.gte': '6.5' } }
