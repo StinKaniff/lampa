@@ -78,7 +78,6 @@
         { id: 21, titleKey: 'streaming_adventure', section: 'genre', genres: '12' },
         { id: 22, titleKey: 'streaming_western', section: 'genre', genres: '37' },
         { id: 23, titleKey: 'streaming_comedy', section: 'genre', genres: '35' },
-        { id: 24, titleKey: 'streaming_family', section: 'genre', genres: '10751' },
         { id: 25, titleKey: 'streaming_drama', section: 'genre', genres: '18' }
     ];
 
@@ -251,7 +250,6 @@
         streaming_adventure: { en: 'Adventure', uk: 'Пригоди' },
         streaming_western: { en: 'Western', uk: 'Вестерн' },
         streaming_comedy: { en: 'Comedy', uk: 'Комедія' },
-        streaming_family: { en: 'Family', uk: 'Сімейний' },
         streaming_drama: { en: 'Drama', uk: 'Драма' },
         streaming_region_label: { en: 'Watch region', uk: 'Регіон перегляду' },
         streaming_netflix_original: { en: 'Netflix Original', uk: 'Netflix Original' },
