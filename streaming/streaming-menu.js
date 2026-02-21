@@ -26,6 +26,9 @@
     var STORAGE_SHOW_CONTINUE_WATCHING = 'streaming_show_continue_watching';
     var STORAGE_SHOW_POPULAR_NOW = 'streaming_show_popular_now';
 
+    // Країни походження без Азії (TMDB — лише включення): США, Європа, Латинська Америка, Океанія тощо. Без KR, JP, CN, IN тощо.
+    var ORIGIN_COUNTRIES_NO_ASIA = 'US|GB|CA|AU|DE|FR|IT|ES|PL|UA|NL|SE|NO|BR|MX|AR|BE|CH|AT|PT|IE|NZ|ZA|RU|TR|FI|DK|CZ|RO|HU|GR';
+
     function isSettingOn(key) {
         var v = Lampa.Storage.get(key, true);
         return v !== false && v !== 'false';
@@ -278,6 +281,9 @@
     function buildDiscoverUrl(opts) {
         var url = opts.url;
         var params = opts.params || {};
+        if (url && url.indexOf('discover/') !== -1 && !params.with_origin_country) {
+            params = Object.assign({}, params, { with_origin_country: ORIGIN_COUNTRIES_NO_ASIA });
+        }
         var page = opts.page;
         var arr = ['api_key=' + Lampa.TMDB.key(), 'language=' + (Lampa.Storage.get('language') || 'uk')];
         if (page != null) arr.push('page=' + page);
