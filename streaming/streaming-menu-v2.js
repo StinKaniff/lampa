@@ -725,6 +725,8 @@
         var searchBtn = document.createElement('div');
         searchBtn.className = 'simple-button simple-button--invisible selector';
         searchBtn.setAttribute('data-action', 'streaming_search');
+        searchBtn.setAttribute('tabindex', '0');
+        searchBtn.setAttribute('role', 'button');
         searchBtn.innerHTML = '<svg width="23" height="22" viewBox="0 0 23 22" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="9.9964" cy="9.63489" r="8.43556" stroke="currentColor" stroke-width="2.4"></circle><path d="M20.7768 20.4334L18.2135 17.8701" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg><span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_search')) || 'Search') + '</span>';
         $(searchBtn).on('hover:enter', function () {
             Lampa.Input.edit({ free: true, nosave: true, nomic: true, value: object.searchQuery || '' }, function (val) {
@@ -746,6 +748,8 @@
             var tagBtn = document.createElement('div');
             tagBtn.className = 'simple-button simple-button--invisible selector';
             tagBtn.setAttribute('data-action', 'streaming_tag');
+            tagBtn.setAttribute('tabindex', '0');
+            tagBtn.setAttribute('role', 'button');
             tagBtn.innerHTML = ICON_TAG_SVG + '<span>' + tagBtnText + '</span>';
             $(tagBtn).on('hover:enter', function () { showTagCategorySelect(object, false); });
             header.appendChild(tagBtn);
@@ -755,6 +759,8 @@
         header.appendChild(rightSpacer);
         var resetBtn = document.createElement('div');
         resetBtn.className = 'simple-button simple-button--invisible selector';
+        resetBtn.setAttribute('tabindex', '0');
+        resetBtn.setAttribute('role', 'button');
         resetBtn.innerHTML = ICON_CLEAN_SVG;
         resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
         $(resetBtn).on('hover:enter', function () {
@@ -775,6 +781,8 @@
         var searchBtn = document.createElement('div');
         searchBtn.className = 'simple-button simple-button--invisible selector';
         searchBtn.setAttribute('data-action', 'streaming_view_search');
+        searchBtn.setAttribute('tabindex', '0');
+        searchBtn.setAttribute('role', 'button');
         searchBtn.innerHTML = '<svg width="23" height="22" viewBox="0 0 23 22" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="9.9964" cy="9.63489" r="8.43556" stroke="currentColor" stroke-width="2.4"></circle><path d="M20.7768 20.4334L18.2135 17.8701" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg><span>' + searchBtnText + '</span>';
         $(searchBtn).on('hover:enter', function () {
             Lampa.Input.edit({ free: true, nosave: true, nomic: true, value: object.searchQuery || '' }, function (val) {
@@ -795,6 +803,8 @@
         var genreBtn = document.createElement('div');
         genreBtn.className = 'simple-button simple-button--invisible selector';
         genreBtn.setAttribute('data-action', 'streaming_view_genre');
+        genreBtn.setAttribute('tabindex', '0');
+        genreBtn.setAttribute('role', 'button');
         genreBtn.innerHTML = ICON_GENRE_SVG + '<span>' + genreBtnText + '</span>';
         $(genreBtn).on('hover:enter', function () { showGenreSelect(object, true); });
         header.appendChild(genreBtn);
@@ -808,6 +818,8 @@
         var tagBtn = document.createElement('div');
         tagBtn.className = 'simple-button simple-button--invisible selector';
         tagBtn.setAttribute('data-action', 'streaming_view_tag');
+        tagBtn.setAttribute('tabindex', '0');
+        tagBtn.setAttribute('role', 'button');
         tagBtn.innerHTML = ICON_TAG_SVG + '<span>' + tagBtnText + '</span>';
         $(tagBtn).on('hover:enter', function () { showTagCategorySelect(object, true); });
         header.appendChild(tagBtn);
@@ -821,6 +833,8 @@
         var countryBtn = document.createElement('div');
         countryBtn.className = 'simple-button simple-button--invisible selector';
         countryBtn.setAttribute('data-action', 'streaming_view_country');
+        countryBtn.setAttribute('tabindex', '0');
+        countryBtn.setAttribute('role', 'button');
         countryBtn.innerHTML = ICON_COUNTRY_SVG + '<span>' + countryBtnText + '</span>';
         $(countryBtn).on('hover:enter', function () { showCountrySelect(object, true); });
         header.appendChild(countryBtn);
@@ -829,6 +843,8 @@
         header.appendChild(rightSpacer);
         var resetBtn = document.createElement('div');
         resetBtn.className = 'simple-button simple-button--invisible selector';
+        resetBtn.setAttribute('tabindex', '0');
+        resetBtn.setAttribute('role', 'button');
         resetBtn.innerHTML = ICON_CLEAN_SVG;
         resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
         $(resetBtn).on('hover:enter', function () {
