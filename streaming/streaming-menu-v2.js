@@ -11,40 +11,80 @@
     // TMDB keyword IDs for tag filter, grouped by category
     var TAGS_BY_CATEGORY = [
         {
-            categoryTitleKey: 'streaming_tag_cat_fantasy',
+            categoryTitleKey: 'streaming_tag_cat_fantasy_future',
             tags: [
                 { id: '2964', titleKey: 'streaming_tag_future' },
-                { id: '4379', titleKey: 'streaming_tag_time_travel' },
-                { id: '4565', titleKey: 'streaming_tag_dystopia' },
-                { id: '12332', titleKey: 'streaming_tag_apocalypse' },
-                { id: '186565', titleKey: 'streaming_tag_zombie_apocalypse' },
-                { id: '3386', titleKey: 'streaming_tag_space_war' },
-                { id: '10158', titleKey: 'streaming_tag_alien_world' },
                 { id: '9715', titleKey: 'streaming_tag_superheroes' },
+                { id: '12332', titleKey: 'streaming_tag_apocalypse' },
+                { id: '4379', titleKey: 'streaming_tag_time_travel' },
+                { id: '4565', titleKey: 'streaming_tag_dystopia' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_monsters',
+            tags: [
+                { id: '12377', titleKey: 'streaming_tag_zombie' },
                 { id: '1299', titleKey: 'streaming_tag_monsters' },
                 { id: '767', titleKey: 'streaming_tag_witches' },
-                { id: '12377', titleKey: 'streaming_tag_zombie' },
-                { id: '1718', titleKey: 'streaming_tag_mutations' },
-                { id: '1720', titleKey: 'streaming_tag_dinosaurs' },
                 { id: '12554', titleKey: 'streaming_tag_dragons' },
+                { id: '1720', titleKey: 'streaming_tag_dinosaurs' },
+                { id: '1718', titleKey: 'streaming_tag_mutations' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_narrative',
+            tags: [
+                { id: '818', titleKey: 'streaming_tag_based_on_novel' },
+                { id: '9663', titleKey: 'streaming_tag_sequel' },
+                { id: '9935', titleKey: 'streaming_tag_journey' },
+                { id: '10092', titleKey: 'streaming_tag_mystery' },
+                { id: '1463', titleKey: 'streaming_tag_culture_clash' },
+                { id: '180635', titleKey: 'streaming_tag_multiple_pov' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_space',
+            tags: [
+                { id: '10158', titleKey: 'streaming_tag_alien_world' },
                 { id: '195114', titleKey: 'streaming_tag_space_adventure' },
-                { id: '161176', titleKey: 'streaming_tag_space_opera' },
-                { id: '9935', titleKey: 'streaming_tag_journey' }
+                { id: '3386', titleKey: 'streaming_tag_space_war' },
+                { id: '161176', titleKey: 'streaming_tag_space_opera' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_psychology',
+            tags: [
+                { id: '9748', titleKey: 'streaming_tag_vengeance' },
+                { id: '2095', titleKey: 'streaming_tag_antihero' },
+                { id: '10044', titleKey: 'streaming_tag_tragic_hero' },
+                { id: '9990', titleKey: 'streaming_tag_femme_fatale' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_crime',
+            tags: [
+                { id: '189402', titleKey: 'streaming_tag_criminal_investigation' },
+                { id: '726', titleKey: 'streaming_tag_drug_addiction' },
+                { id: '853', titleKey: 'streaming_tag_crime_fighter' },
+                { id: '156082', titleKey: 'streaming_tag_heist' },
+                { id: '10909', titleKey: 'streaming_tag_lawyer' }
             ]
         },
         {
             categoryTitleKey: 'streaming_tag_cat_action',
             tags: [
-                { id: '9748', titleKey: 'streaming_tag_vengeance' },
-                { id: '14643', titleKey: 'streaming_tag_battle' },
-                { id: '14796', titleKey: 'streaming_tag_destruction' },
+                { id: '10039', titleKey: 'streaming_tag_racing' },
                 { id: '14819', titleKey: 'streaming_tag_violence' },
-                { id: '13065', titleKey: 'streaming_tag_soldier' },
-                { id: '11399', titleKey: 'streaming_tag_marines' },
-                { id: '949', titleKey: 'streaming_tag_terrorism' },
-                { id: '160381', titleKey: 'streaming_tag_nuclear_threat' },
                 { id: '258', titleKey: 'streaming_tag_explosion' },
-                { id: '10039', titleKey: 'streaming_tag_racing' }
+                { id: '14796', titleKey: 'streaming_tag_destruction' }
+            ]
+        },
+        {
+            categoryTitleKey: 'streaming_tag_cat_war',
+            tags: [
+                { id: '13065', titleKey: 'streaming_tag_soldier' },
+                { id: '14643', titleKey: 'streaming_tag_battle' },
+                { id: '11399', titleKey: 'streaming_tag_marines' }
             ]
         },
         {
@@ -53,25 +93,15 @@
                 { id: '470', titleKey: 'streaming_tag_spy' },
                 { id: '4289', titleKey: 'streaming_tag_secret_agent' },
                 { id: '14555', titleKey: 'streaming_tag_mi6' },
-                { id: '156095', titleKey: 'streaming_tag_british_intelligence' },
-                { id: '10092', titleKey: 'streaming_tag_mystery' },
-                { id: '156082', titleKey: 'streaming_tag_heist' },
-                { id: '726', titleKey: 'streaming_tag_drug_addiction' },
-                { id: '853', titleKey: 'streaming_tag_crime_fighter' },
-                { id: '9990', titleKey: 'streaming_tag_femme_fatale' },
-                { id: '10044', titleKey: 'streaming_tag_tragic_hero' },
-                { id: '2095', titleKey: 'streaming_tag_antihero' },
-                { id: '189402', titleKey: 'streaming_tag_criminal_investigation' },
-                { id: '10909', titleKey: 'streaming_tag_lawyer' }
+                { id: '156095', titleKey: 'streaming_tag_british_intelligence' }
             ]
         },
         {
-            categoryTitleKey: 'streaming_tag_cat_narrative',
+            categoryTitleKey: 'streaming_tag_cat_apocalypse',
             tags: [
-                { id: '818', titleKey: 'streaming_tag_based_on_novel' },
-                { id: '9663', titleKey: 'streaming_tag_sequel' },
-                { id: '180635', titleKey: 'streaming_tag_multiple_pov' },
-                { id: '1463', titleKey: 'streaming_tag_culture_clash' }
+                { id: '186565', titleKey: 'streaming_tag_zombie_apocalypse' },
+                { id: '949', titleKey: 'streaming_tag_terrorism' },
+                { id: '160381', titleKey: 'streaming_tag_nuclear_threat' }
             ]
         }
     ];
@@ -451,10 +481,16 @@
         streaming_search_results: { en: 'Search results', uk: 'Результати пошуку' },
         streaming_tag_label: { en: 'Tag', uk: 'Тег' },
         streaming_reset_filters: { en: 'Reset', uk: 'Скинути' },
-        streaming_tag_cat_fantasy: { en: 'Sci‑Fi & Supernatural', uk: 'Фантастика та Надприродне' },
-        streaming_tag_cat_action: { en: 'Action & War', uk: 'Екшен та Війна' },
-        streaming_tag_cat_spy: { en: 'Spy & Crime', uk: 'Шпигунство та Кримінал' },
-        streaming_tag_cat_narrative: { en: 'Narrative & Social', uk: 'Наратив та Соціальні Теми' },
+        streaming_tag_cat_fantasy_future: { en: 'Sci‑Fi & Future', uk: 'Фантастика та Майбутнє' },
+        streaming_tag_cat_monsters: { en: 'Monsters & Creatures', uk: 'Монстри та Істоти' },
+        streaming_tag_cat_narrative: { en: 'Narrative & Plot', uk: 'Наратив та Сюжет' },
+        streaming_tag_cat_space: { en: 'Space', uk: 'Космос' },
+        streaming_tag_cat_psychology: { en: 'Psychology & Archetypes', uk: 'Психологія та Архетипи' },
+        streaming_tag_cat_crime: { en: 'Crime & Justice', uk: 'Кримінал та Правосуддя' },
+        streaming_tag_cat_action: { en: 'Action & Spectacle', uk: 'Екшен та Видовищність' },
+        streaming_tag_cat_war: { en: 'War & Army', uk: 'Війна та Армія' },
+        streaming_tag_cat_spy: { en: 'Spy', uk: 'Шпигунство' },
+        streaming_tag_cat_apocalypse: { en: 'Post‑apocalypse & Global threats', uk: 'Постапокаліпсис та Глобальні загрози' },
         streaming_tag_future: { en: 'Future', uk: 'Майбутнє' },
         streaming_tag_time_travel: { en: 'Time travel', uk: 'Подорожі в часі' },
         streaming_tag_dystopia: { en: 'Dystopia', uk: 'Антиутопія' },
