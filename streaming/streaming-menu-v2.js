@@ -78,6 +78,7 @@
         { id: 21, titleKey: 'streaming_adventure', section: 'genre', genres: '12' },
         { id: 22, titleKey: 'streaming_western', section: 'genre', genres: '37' },
         { id: 23, titleKey: 'streaming_comedy', section: 'genre', genres: '35' },
+        { id: 24, titleKey: 'streaming_family', section: 'genre', genres: '10751' },
         { id: 25, titleKey: 'streaming_drama', section: 'genre', genres: '18' }
     ];
 
@@ -250,6 +251,7 @@
         streaming_adventure: { en: 'Adventure', uk: 'Пригоди' },
         streaming_western: { en: 'Western', uk: 'Вестерн' },
         streaming_comedy: { en: 'Comedy', uk: 'Комедія' },
+        streaming_family: { en: 'Family', uk: 'Сімейний' },
         streaming_drama: { en: 'Drama', uk: 'Драма' },
         streaming_region_label: { en: 'Watch region', uk: 'Регіон перегляду' },
         streaming_netflix_original: { en: 'Netflix Original', uk: 'Netflix Original' },
@@ -395,7 +397,8 @@
                     var cat = categories[parseInt(key, 10)];
                     if (!cat || !results.length) return;
                     Lampa.Utils.extendItemsParams(results, { style: { name: 'wide' } });
-                    fulldata.push({ title: cat.title, results: results, url: cat.url, params: cat.params });
+                    var rowIcon = cat.index === 1 ? 'fire' : undefined;
+                    fulldata.push({ title: cat.title, results: results, url: cat.url, params: cat.params, rowIcon: rowIcon });
                 });
                 return fulldata;
             }
@@ -406,6 +409,16 @@
                 var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
+                    var root = _this.render();
+                    if (root && root.find) {
+                        root.find('.items-line').each(function (idx) {
+                            var item = fulldata[idx];
+                            if (item && item.rowIcon === 'fire') {
+                                var photo = $(this).find('.full-person__photo').first();
+                                if (photo.length) photo.html('<svg><use xlink:href="#sprite-fire"></use></svg>');
+                            }
+                        });
+                    }
                     _this.activity.loader(false);
                 } else {
                     _this.empty();
