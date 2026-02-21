@@ -125,8 +125,18 @@
         }
         if (cat.section === 'genre') {
             var g = Object.assign({ sort_by: 'popularity.desc', 'vote_count.gte': '10' }, baseTv);
-            if (cat.genres) g.with_genres = cat.genres;
             if (cat.keywords) g.with_keywords = cat.keywords;
+            if (cat.genres) {
+                var genreIds = cat.genres.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+                if (genreIds.length > 1) {
+                    opts.mergeRequests = genreIds.map(function (oneId) {
+                        var params = Object.assign({}, g, { with_genres: oneId });
+                        return { url: 'discover/tv', params: params };
+                    });
+                    return opts;
+                }
+                g.with_genres = cat.genres;
+            }
             opts.params = g;
             return opts;
         }
@@ -136,7 +146,6 @@
     var SERVICE_CONFIGS = {
         netflix: {
             title: 'Netflix',
-            watch_region_override: 'US',
             base: {
                 tv: { with_networks: '213' },
                 movie: { with_watch_providers: '8', watch_region: '{watch_region}' }
@@ -151,19 +160,17 @@
         },
         apple: {
             title: 'Apple TV+',
-            watch_region_override: 'US',
-            base: { tv: { with_networks: '2552' }, movie: { with_watch_providers: '350', watch_region: '{watch_region}' } },
+            base: { tv: { with_watch_providers: '350', watch_region: '{watch_region}' }, movie: { with_watch_providers: '350', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: false,
             exclusives: [
                 { titleKey: 'streaming_apple_original', mergeRequests: [
-                    { url: 'discover/tv', params: { with_networks: '2552', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
                 ]}
             ]
         },
         hbo: {
             title: 'HBO',
-            watch_region_override: 'US',
             base: { tv: { with_networks: '49|3186' }, movie: { with_watch_providers: '384', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: false,
             exclusives: [
@@ -176,7 +183,6 @@
         },
         amazon: {
             title: 'Prime Video',
-            watch_region_override: 'US',
             base: { tv: { with_networks: '1024' }, movie: { with_watch_providers: '119', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: false,
             exclusives: [
@@ -189,11 +195,11 @@
         disney: {
             title: 'Disney+',
             watch_region_override: 'US',
-            base: { tv: { with_networks: '2739' }, movie: { with_watch_providers: '337', watch_region: '{watch_region}' } },
+            base: { tv: { with_watch_providers: '337', watch_region: '{watch_region}' }, movie: { with_watch_providers: '337', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: true,
             exclusives: [
                 { titleKey: 'streaming_disney_original', mergeRequests: [
-                    { url: 'discover/tv', params: { with_networks: '2739', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/tv', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
                 ]},
                 { titleKey: 'streaming_disney_classic', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
@@ -203,7 +209,6 @@
         },
         paramount: {
             title: 'Paramount+',
-            watch_region_override: 'US',
             base: { tv: { with_networks: '4330' }, movie: { with_watch_providers: '531', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: false,
             exclusives: [
@@ -351,16 +356,25 @@
                 if (cat.mergeRequests && cat.mergeRequests.length) {
                     var pending = cat.mergeRequests.length;
                     var allResults = [];
+                    function dedupeById(arr) {
+                        var seen = {};
+                        return arr.filter(function (r) {
+                            var id = (r && r.id) != null ? String(r.id) + '_' + (r.media_type || 'tv') : '';
+                            if (!id || seen[id]) return false;
+                            seen[id] = true;
+                            return true;
+                        });
+                    }
                     cat.mergeRequests.forEach(function (r) {
                         doRequest(r.url, r.params, 1, function (json) {
                             if (isStale()) return;
                             if (json && json.results && json.results.length) allResults = allResults.concat(json.results);
                             pending--;
-                            if (pending === 0) status.append(String(index), { results: allResults });
+                            if (pending === 0) status.append(String(index), { results: dedupeById(allResults) });
                         }, function () {
                             if (isStale()) return;
                             pending--;
-                            if (pending === 0) status.append(String(index), { results: allResults });
+                            if (pending === 0) status.append(String(index), { results: dedupeById(allResults) });
                             status.error();
                         });
                     });
@@ -528,8 +542,7 @@
                     title: categoriesLabel,
                     items: items,
                     onCheck: function (item) {
-                        var newVal = !isCatEnabled(item.value);
-                        setCatEnabled(item.value, newVal);
+                        setCatEnabled(item.value, !!item.checked);
                     },
                     onBack: function () {
                         if (Lampa.Settings && Lampa.Settings.update) Lampa.Settings.update();
