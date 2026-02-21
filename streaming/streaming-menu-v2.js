@@ -1,18 +1,18 @@
 (function () {
     'use strict';
 
-    var KEYWORD_BASED_ON_NOVEL = '818';
     var ORIGIN_COUNTRIES_NO_ASIA = 'US|GB|CA|AU|DE|FR|IT|ES|PL|UA|NL|SE|NO|BR|MX|AR|BE|CH|AT|PT|IE|NZ|ZA|RU|TR|FI|DK|CZ|RO|HU|GR';
     var STORAGE_PREFIX_CAT = 'streaming_cat_';
     var STORAGE_WATCH_REGION = 'streaming_watch_region';
     var STORAGE_ENABLED_SERVICES = 'streaming_enabled_services';
-    var DEFAULT_ENABLED_COUNT = 10;
+    // За замовч. увімкнено: 1–8 та 11–12 (замість 9 «На основі книг» і 10 «Світ природи»)
+    var DEFAULT_ON_IDS = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 11: true, 12: true };
     var MAX_CATEGORIES = 25;
 
     function isCatEnabled(index) {
         var key = STORAGE_PREFIX_CAT + index;
         var v = Lampa.Storage.get(key);
-        if (v === undefined || v === null) return index <= DEFAULT_ENABLED_COUNT;
+        if (v === undefined || v === null) return !!DEFAULT_ON_IDS[index];
         return v !== false && v !== 'false';
     }
 
@@ -62,8 +62,6 @@
         { id: 6, titleKey: 'streaming_exclusive_2', section: 'exclusive' },
         { id: 7, titleKey: 'streaming_exclusive_3', section: 'exclusive' },
         { id: 8, titleKey: 'streaming_exclusive_4', section: 'exclusive' },
-        { id: 9, titleKey: 'streaming_books', section: 'genre', keywords: KEYWORD_BASED_ON_NOVEL },
-        { id: 10, titleKey: 'streaming_nature', section: 'genre', genres: '99' },
         { id: 11, titleKey: 'streaming_sci_fi', section: 'genre', genres: '10765' },
         { id: 12, titleKey: 'streaming_detectives', section: 'genre', genres: '9648' },
         { id: 13, titleKey: 'streaming_documentary', section: 'genre', genres: '99' },
@@ -152,8 +150,7 @@
                 { titleKey: 'streaming_netflix_original', mergeRequests: [
                     { url: 'discover/tv', params: { with_networks: '213', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_companies: '213', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
-                ]},
-                { titleKey: 'streaming_books', url: 'discover/tv', params: { with_networks: '213', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
+                ]}
             ]
         },
         apple: {
@@ -164,8 +161,7 @@
                 { titleKey: 'streaming_apple_original', mergeRequests: [
                     { url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
-                ]},
-                { titleKey: 'streaming_books', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
+                ]}
             ]
         },
         hbo: {
@@ -177,8 +173,7 @@
                     { url: 'discover/tv', params: { with_networks: '3186', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_watch_providers: '384', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
                 ]},
-                { titleKey: 'streaming_hbo_gold', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
-                { titleKey: 'streaming_books', url: 'discover/tv', params: { with_networks: '49|3186', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
+                { titleKey: 'streaming_hbo_gold', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
             ]
         },
         amazon: {
@@ -189,8 +184,7 @@
                 { titleKey: 'streaming_prime_original', mergeRequests: [
                     { url: 'discover/tv', params: { with_networks: '1024', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_watch_providers: '119', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
-                ]},
-                { titleKey: 'streaming_books', url: 'discover/tv', params: { with_networks: '1024', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
+                ]}
             ]
         },
         disney: {
@@ -217,8 +211,7 @@
                     { url: 'discover/movie', params: { with_watch_providers: '531', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
                 ]},
                 { titleKey: 'streaming_yellowstone', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
-                { titleKey: 'streaming_paramount_blockbusters', url: 'discover/movie', params: { with_companies: '4', sort_by: 'popularity.desc', 'vote_count.gte': '10', 'vote_average.gte': '6.5' } },
-                { titleKey: 'streaming_books', url: 'discover/tv', params: { with_networks: '4330', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
+                { titleKey: 'streaming_paramount_blockbusters', url: 'discover/movie', params: { with_companies: '4', sort_by: 'popularity.desc', 'vote_count.gte': '10', 'vote_average.gte': '6.5' } }
             ]
         },
         origin: {
@@ -242,8 +235,6 @@
         streaming_exclusive_2: { en: 'Exclusive 2', uk: 'Ексклюзив 2' },
         streaming_exclusive_3: { en: 'Exclusive 3', uk: 'Ексклюзив 3' },
         streaming_exclusive_4: { en: 'Exclusive 4', uk: 'Ексклюзив 4' },
-        streaming_books: { en: 'Based on books', uk: 'На основі книг' },
-        streaming_nature: { en: 'Nature world', uk: 'Світ природи' },
         streaming_sci_fi: { en: 'Sci-Fi worlds', uk: 'Фантастичні світи' },
         streaming_detectives: { en: 'Detectives', uk: 'Детективи' },
         streaming_documentary: { en: 'Documentary', uk: 'Документальні' },
@@ -275,7 +266,7 @@
         streaming_space: { en: 'Space', uk: 'Космос' },
         streaming_wildlife: { en: 'Wildlife', uk: 'Дика природа' },
         streaming_enabled_services_label: { en: 'Streamings', uk: 'Стримінги' },
-        streaming_display_categories_label: { en: 'Display categories (first 10 on by default)', uk: 'Відображати категорії (за замовчуванням увімкнено перші 10)' },
+        streaming_display_categories_label: { en: 'Display categories (10 on by default: 1–8, 11–12)', uk: 'Відображати категорії (за замовч. увімкнено 10: 1–8, 11–12)' },
         streaming_more_label: { en: 'See all', uk: 'Дивитись усі' }
     });
 
@@ -305,12 +296,12 @@
         var service = SERVICE_CONFIGS[serviceId];
         if (!service) return [];
         var list = [];
-        for (var i = 0; i < MAX_CATEGORIES; i++) {
+        for (var i = 0; i < CATEGORY_TEMPLATE.length; i++) {
             var cat = CATEGORY_TEMPLATE[i];
-            if (!isCatEnabled(cat.id)) continue;
+            if (!cat || !isCatEnabled(cat.id)) continue;
             if (cat.section === 'exclusive') {
                 var exs = service.exclusives || [];
-                if (!exs[i - 5]) continue;
+                if (!exs[cat.id - 5]) continue;
             }
             var req = getCategoryRequest(service, cat, cat.id);
             if (!req || (!req.params && !req.mergeRequests)) continue;
