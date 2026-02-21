@@ -721,7 +721,7 @@
         var showTag = opts.showTag !== false;
         var header = document.createElement('div');
         header.className = 'streaming-sqr-header';
-        header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:nowrap;width:100%;box-sizing:border-box;';
+        header.style.cssText = 'display:flex;align-items:center;gap:16px;padding:10px 16px;flex-wrap:nowrap;width:100%;box-sizing:border-box;';
         var searchBtn = document.createElement('div');
         searchBtn.className = 'simple-button simple-button--invisible selector';
         searchBtn.setAttribute('data-action', 'streaming_search');
@@ -734,13 +734,7 @@
                 }
             });
         });
-        var searchWrap = document.createElement('div');
-        searchWrap.style.cssText = 'flex:0 0 25%;min-width:120px;';
-        searchWrap.appendChild(searchBtn);
-        header.appendChild(searchWrap);
-        var indentSpacer = document.createElement('div');
-        indentSpacer.style.cssText = 'width:28px;flex-shrink:0;';
-        header.appendChild(indentSpacer);
+        header.appendChild(searchBtn);
         if (showTag) {
             var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
             var tagTitle = '';
@@ -759,10 +753,9 @@
         var rightSpacer = document.createElement('div');
         rightSpacer.style.cssText = 'flex:1 1 0;min-width:12px;';
         header.appendChild(rightSpacer);
-        var clearLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_clear_filters')) || (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Clear';
         var resetBtn = document.createElement('div');
         resetBtn.className = 'simple-button simple-button--invisible selector';
-        resetBtn.innerHTML = ICON_CLEAN_SVG + '<span>' + clearLabel + '</span>';
+        resetBtn.innerHTML = ICON_CLEAN_SVG;
         resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
         $(resetBtn).on('hover:enter', function () {
             var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null });
@@ -775,7 +768,7 @@
     function buildStreamingViewHeader(object) {
         var header = document.createElement('div');
         header.className = 'streaming-sqr-header streaming-sqr-header--view';
-        header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:nowrap;width:100%;box-sizing:border-box;';
+        header.style.cssText = 'display:flex;align-items:center;gap:16px;padding:10px 16px;flex-wrap:nowrap;width:100%;box-sizing:border-box;';
         var searchLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_search')) || 'Search';
         var searchQuery = (object.searchQuery && object.searchQuery.trim) ? object.searchQuery.trim() : '';
         var searchBtnText = searchQuery ? searchLabelBase + ': ' + searchQuery : searchLabelBase;
@@ -791,13 +784,7 @@
                 }
             });
         });
-        var searchWrap = document.createElement('div');
-        searchWrap.style.cssText = 'flex:0 0 25%;min-width:120px;';
-        searchWrap.appendChild(searchBtn);
-        header.appendChild(searchWrap);
-        var indentSpacer = document.createElement('div');
-        indentSpacer.style.cssText = 'width:28px;flex-shrink:0;';
-        header.appendChild(indentSpacer);
+        header.appendChild(searchBtn);
         var genreLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_genre_label')) || 'Genre';
         var genreTitle = '';
         if (object.genreId != null) {
@@ -840,10 +827,9 @@
         var rightSpacer = document.createElement('div');
         rightSpacer.style.cssText = 'flex:1 1 0;min-width:12px;';
         header.appendChild(rightSpacer);
-        var clearLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_clear_filters')) || (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Clear';
         var resetBtn = document.createElement('div');
         resetBtn.className = 'simple-button simple-button--invisible selector';
-        resetBtn.innerHTML = ICON_CLEAN_SVG + '<span>' + clearLabel + '</span>';
+        resetBtn.innerHTML = ICON_CLEAN_SVG;
         resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
         $(resetBtn).on('hover:enter', function () {
             var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null, genreId: null, originCountry: null, page: 1 });
