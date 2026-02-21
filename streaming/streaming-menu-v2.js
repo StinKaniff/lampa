@@ -1000,12 +1000,12 @@
             var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
             if (!root) return;
             var headerEl = buildStreamingViewHeader(object);
-            headerEl.classList.add('streaming-sqr-header--inline');
-            var contentArea = (root.querySelector && root.querySelector('.category-full')) || (root.children && root.children[0]) || root;
-            if (contentArea.insertBefore) {
-                contentArea.insertBefore(headerEl, contentArea.firstChild || null);
+            if (root.prepend) {
+                root.prepend(headerEl);
+            } else if (root.insertBefore && root.firstChild) {
+                root.insertBefore(headerEl, root.firstChild);
             } else {
-                root.insertBefore(headerEl, root.firstChild || null);
+                root.insertBefore(headerEl, null);
             }
         }
         comp.create = function () {
