@@ -318,10 +318,28 @@
 
             function isStale() { return comp._streamingSessionId !== sessionId; }
 
+            // Історія перегляду: Lampa.Favorite.get({ type: 'history' }) — масив { id, method: 'tv'|'movie', time? }.
+            // Якщо додаток повертає об'єкт з .items — використовуємо його. Сортуємо за time/date (новіші спочатку), беремо 20.
             function getContinueWatchingList() {
-                if (!Lampa.Favorite || !Lampa.Favorite.get) return [];
-                var history = Lampa.Favorite.get({ type: 'history' }) || [];
-                return history.slice(0, 10);
+                if (!Lampa.Favorite || typeof Lampa.Favorite.get !== 'function') return [];
+                var raw = Lampa.Favorite.get({ type: 'history' });
+                if (!raw) raw = Lampa.Favorite.get({ type: 'viewing_history' });
+                if (!raw) return [];
+                var history = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.items) ? raw.items : []);
+                if (!history.length) return [];
+                var sorted = history.slice();
+                var first = sorted[0];
+                var timeKey = first && (first.time != null ? 'time' : first.date != null ? 'date' : first.updated_at != null ? 'updated_at' : first.created_at != null ? 'created_at' : null);
+                if (timeKey) {
+                    sorted.sort(function (a, b) {
+                        var ta = a[timeKey];
+                        var tb = b[timeKey];
+                        if (typeof ta === 'number' && typeof tb === 'number') return tb - ta;
+                        if (typeof ta === 'string' && typeof tb === 'string') return tb.localeCompare(ta);
+                        return 0;
+                    });
+                }
+                return sorted.slice(0, 20);
             }
 
             function filterContinueByService(list, serviceId, done) {
