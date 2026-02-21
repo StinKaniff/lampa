@@ -136,6 +136,7 @@
     var SERVICE_CONFIGS = {
         netflix: {
             title: 'Netflix',
+            watch_region_override: 'US',
             base: {
                 tv: { with_networks: '213' },
                 movie: { with_watch_providers: '8', watch_region: '{watch_region}' }
@@ -150,17 +151,19 @@
         },
         apple: {
             title: 'Apple TV+',
-            base: { tv: { with_watch_providers: '350', watch_region: '{watch_region}' }, movie: { with_watch_providers: '350', watch_region: '{watch_region}' } },
+            watch_region_override: 'US',
+            base: { tv: { with_networks: '2552' }, movie: { with_watch_providers: '350', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: false,
             exclusives: [
                 { titleKey: 'streaming_apple_original', mergeRequests: [
-                    { url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/tv', params: { with_networks: '2552', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
                 ]}
             ]
         },
         hbo: {
             title: 'HBO',
+            watch_region_override: 'US',
             base: { tv: { with_networks: '49|3186' }, movie: { with_watch_providers: '384', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: false,
             exclusives: [
@@ -173,6 +176,7 @@
         },
         amazon: {
             title: 'Prime Video',
+            watch_region_override: 'US',
             base: { tv: { with_networks: '1024' }, movie: { with_watch_providers: '119', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: false,
             exclusives: [
@@ -185,11 +189,11 @@
         disney: {
             title: 'Disney+',
             watch_region_override: 'US',
-            base: { tv: { with_watch_providers: '337', watch_region: '{watch_region}' }, movie: { with_watch_providers: '337', watch_region: '{watch_region}' } },
+            base: { tv: { with_networks: '2739' }, movie: { with_watch_providers: '337', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: true,
             exclusives: [
                 { titleKey: 'streaming_disney_original', mergeRequests: [
-                    { url: 'discover/tv', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
+                    { url: 'discover/tv', params: { with_networks: '2739', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }
                 ]},
                 { titleKey: 'streaming_disney_classic', url: 'discover/movie', params: { with_companies: '6125', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
@@ -199,6 +203,7 @@
         },
         paramount: {
             title: 'Paramount+',
+            watch_region_override: 'US',
             base: { tv: { with_networks: '4330' }, movie: { with_watch_providers: '531', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: false,
             exclusives: [
@@ -523,7 +528,8 @@
                     title: categoriesLabel,
                     items: items,
                     onCheck: function (item) {
-                        setCatEnabled(item.value, !!item.checked);
+                        var newVal = !isCatEnabled(item.value);
+                        setCatEnabled(item.value, newVal);
                     },
                     onBack: function () {
                         if (Lampa.Settings && Lampa.Settings.update) Lampa.Settings.update();
