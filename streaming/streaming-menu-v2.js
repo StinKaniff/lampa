@@ -5,8 +5,8 @@
     var STORAGE_PREFIX_CAT = 'streaming_cat_';
     var STORAGE_WATCH_REGION = 'streaming_watch_region';
     var STORAGE_ENABLED_SERVICES = 'streaming_enabled_services';
-    // За замовч. увімкнено: 1–8 та 11–12 (замість 9 «На основі книг» і 10 «Світ природи»)
-    var DEFAULT_ON_IDS = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 11: true, 12: true };
+    // За замовч. увімкнено: 1–3, 5–8, 11–13 (без дубліката Original — є в ексклюзивах)
+    var DEFAULT_ON_IDS = { 1: true, 2: true, 3: true, 5: true, 6: true, 7: true, 8: true, 11: true, 12: true, 13: true };
     var MAX_CATEGORIES = 25;
 
     function isCatEnabled(index) {
@@ -52,12 +52,11 @@
         return Lampa.TMDB.api(url + '?' + arr.join('&'));
     }
 
-    // 1–4: фіксовані; 5–8: ексклюзиви (до 4 на сервіс); 9–25: жанри
+    // 1–3: фіксовані; 5–8: ексклюзиви (назва стримінгу Original тощо); 11–25: жанри
     var CATEGORY_TEMPLATE = [
         { id: 1, titleKey: 'streaming_trending', section: 'trending' },
         { id: 2, titleKey: 'streaming_new_series', section: 'new_series' },
         { id: 3, titleKey: 'streaming_new_movies', section: 'new_movies' },
-        { id: 4, titleKey: 'streaming_original', section: 'original' },
         { id: 5, titleKey: 'streaming_exclusive_1', section: 'exclusive' },
         { id: 6, titleKey: 'streaming_exclusive_2', section: 'exclusive' },
         { id: 7, titleKey: 'streaming_exclusive_3', section: 'exclusive' },
@@ -110,15 +109,6 @@
         }
         if (cat.section === 'new_movies') {
             return { url: 'discover/movie', params: Object.assign({ sort_by: 'primary_release_date.desc', 'primary_release_date.lte': getCurrentDate(), 'vote_count.gte': '10' }, baseMovie) };
-        }
-        if (cat.section === 'original') {
-            var origTv = Object.assign({ sort_by: 'vote_average.desc', 'vote_count.gte': '10' }, baseTv);
-            var origMovie = Object.assign({ sort_by: 'vote_average.desc', 'vote_count.gte': '10' }, baseMovie);
-            opts.mergeRequests = [
-                { url: 'discover/tv', params: origTv },
-                { url: 'discover/movie', params: origMovie }
-            ];
-            return opts;
         }
         if (cat.section === 'exclusive') {
             var exIdx = index - 5;
@@ -230,7 +220,6 @@
         streaming_trending: { en: 'Popular now', uk: 'В тренді' },
         streaming_new_series: { en: 'New series', uk: 'Нові серіали' },
         streaming_new_movies: { en: 'New movies', uk: 'Нові фільми' },
-        streaming_original: { en: 'Original', uk: 'Original' },
         streaming_exclusive_1: { en: 'Exclusive 1', uk: 'Ексклюзив 1' },
         streaming_exclusive_2: { en: 'Exclusive 2', uk: 'Ексклюзив 2' },
         streaming_exclusive_3: { en: 'Exclusive 3', uk: 'Ексклюзив 3' },
@@ -266,7 +255,7 @@
         streaming_space: { en: 'Space', uk: 'Космос' },
         streaming_wildlife: { en: 'Wildlife', uk: 'Дика природа' },
         streaming_enabled_services_label: { en: 'Streamings', uk: 'Стримінги' },
-        streaming_display_categories_label: { en: 'Display categories (10 on by default: 1–8, 11–12)', uk: 'Відображати категорії (за замовч. увімкнено 10: 1–8, 11–12)' },
+        streaming_display_categories_label: { en: 'Display categories (10 on by default)', uk: 'Відображати категорії (за замовч. увімкнено 10)' },
         streaming_more_label: { en: 'See all', uk: 'Дивитись усі' }
     });
 
