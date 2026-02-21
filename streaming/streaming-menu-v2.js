@@ -30,9 +30,14 @@
         return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
     }
 
+    function getWatchRegionForService(service) {
+        if (service && service.watch_region_override) return service.watch_region_override;
+        return getWatchRegion();
+    }
+
     function subParams(p, service) {
         var out = {};
-        var region = getWatchRegion();
+        var region = getWatchRegionForService(service);
         var date = getCurrentDate();
         for (var k in p) {
             var v = p[k];
@@ -179,6 +184,7 @@
         },
         disney: {
             title: 'Disney+',
+            watch_region_override: 'US',
             base: { tv: { with_watch_providers: '337', watch_region: '{watch_region}' }, movie: { with_watch_providers: '337', watch_region: '{watch_region}' } },
             mergeTvMovieTrending: true,
             exclusives: [
