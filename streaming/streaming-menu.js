@@ -6,7 +6,7 @@
      * Кожен сервіс — окремі рядки: нові фільми, нові серіали, в тренді тощо.
      */
 
-    // TMDB keyword IDs для ексклюзивних категорій Netflix
+    // TMDB keyword IDs для ексклюзивних категорій 
     var KEYWORD_FANTASY_WORLD = '9715';
     var KEYWORD_BASED_ON_NOVEL = '818';
     // TMDB watch provider ID по service_id (для фільтра «Продовжити перегляд» по сервісу)
@@ -23,7 +23,6 @@
     var STORAGE_SHOW_TRENDING = 'streaming_show_trending';
     var STORAGE_SHOW_NEW = 'streaming_show_new';
     var STORAGE_SHOW_EXCLUSIVE = 'streaming_show_exclusive';
-    var STORAGE_SHOW_CONTINUE_WATCHING = 'streaming_show_continue_watching';
     var STORAGE_SHOW_POPULAR_NOW = 'streaming_show_popular_now';
 
     // Країни походження без Азії (TMDB — лише включення): США, Європа, Латинська Америка, Океанія тощо. Без KR, JP, CN, IN тощо.
@@ -38,21 +37,18 @@
         netflix: {
             title: 'Netflix',
             categories: [
-                // Continue & Trending //
-                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
+                // Trending //
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '213', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_TRENDING },
                 // New //
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '213', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '8', watch_region: '{watch_region}', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
                 // Exclusive //
                 { title: 'Netflix Original', url: 'discover/tv', params: { with_networks: '213', sort_by: 'vote_average.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE, mergeRequests: [ { url: 'discover/tv', params: { with_networks: '213', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }, { url: 'discover/movie', params: { with_companies: '213', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } } ] },
-                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '213', with_keywords: KEYWORD_FANTASY_WORLD, sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 { title: 'На основі книг', url: 'discover/tv', params: { with_networks: '213', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 // Genres //
                 { title: 'Пригоди', url: 'discover/tv', params: { with_networks: '213', with_genres: '12', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_12' },
                 { title: 'Комедії', url: 'discover/tv', params: { with_networks: '213', with_genres: '35', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_35' },
                 { title: 'Анімація', url: 'discover/tv', params: { with_networks: '213', with_genres: '16', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_16' },
-                { title: 'Історичні', url: 'discover/tv', params: { with_networks: '213', with_genres: '36', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_36' },
                 { title: 'Детективи', url: 'discover/tv', params: { with_networks: '213', with_genres: '9648', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_9648' },
                 { title: 'Бойовики та вестерни', url: 'discover/tv', params: { with_networks: '213', with_genres: '28,37', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_28' },
                 { title: 'Трилери', url: 'discover/tv', params: { with_networks: '213', with_genres: '53', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_53' }
@@ -61,20 +57,17 @@
         apple: {
             title: 'Apple TV+',
             categories: [
-                // Continue & Trending //
-                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
+                // Trending //
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_TRENDING },
                 // New //
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
                 // Exclusive //
                 { title: 'Apple TV+ Original', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE, mergeRequests: [ { url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }, { url: 'discover/movie', params: { with_watch_providers: '350', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } } ] },
-                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_genres: '10765', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 { title: 'На основі книг', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 // Genres //
                 { title: 'Пригоди', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_genres: '12', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_12' },
                 { title: 'Комедії', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_genres: '35', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_35' },
-                { title: 'Історичні', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_genres: '36', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_36' },
                 { title: 'Детективи', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_genres: '9648', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_9648' },
                 { title: 'Бойовики та вестерни', url: 'discover/tv', params: { with_watch_providers: '350', watch_region: '{watch_region}', with_genres: '28,37', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_28' },
             ]
@@ -82,8 +75,7 @@
         hbo: {
             title: 'HBO',
             categories: [
-                // Continue & Trending //
-                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
+                // Trending //
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_TRENDING },
                 // New //
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '49|3186', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
@@ -91,12 +83,10 @@
                 // Exclusive //
                 { title: 'Max Originals', url: 'discover/tv', params: { with_networks: '3186', sort_by: 'vote_average.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE, mergeRequests: [ { url: 'discover/tv', params: { with_networks: '3186', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }, { url: 'discover/movie', params: { with_watch_providers: '384', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } } ] },
                 { title: 'Золота колекція HBO', url: 'discover/tv', params: { with_networks: '49', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
-                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '10765', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 { title: 'На основі книг', url: 'discover/tv', params: { with_networks: '49|3186', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 // Genres //
                 { title: 'Пригоди', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '12', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_12' },
                 { title: 'Комедії', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '35', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_35' },
-                { title: 'Історичні', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '36', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_36' },
                 { title: 'Детективи', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '9648', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_9648' },
                 { title: 'Бойовики та вестерни', url: 'discover/tv', params: { with_networks: '49|3186', with_genres: '28,37', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_28' },
             ]
@@ -104,15 +94,13 @@
         amazon: {
             title: 'Prime Video',
             categories: [
-                // Continue & Trending //
-                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
+                // Trending //
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_TRENDING },
                 // New //
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '119', watch_region: '{watch_region}', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
                 // Exclusive //
                 { title: 'Prime Video Original', url: 'discover/tv', params: { with_networks: '1024', sort_by: 'vote_average.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE, mergeRequests: [ { url: 'discover/tv', params: { with_networks: '1024', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }, { url: 'discover/movie', params: { with_watch_providers: '119', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } } ] },
-                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '1024', with_genres: '10765', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 { title: 'На основі книг', url: 'discover/tv', params: { with_networks: '1024', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 // Genres //
                 { title: 'Пригоди', url: 'discover/tv', params: { with_networks: '1024', with_genres: '12', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_12' },
@@ -125,18 +113,8 @@
         disney: {
             title: 'Disney+',
             categories: [
-                // Continue & Trending //
-                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
-                {
-                    title: 'streaming_popular_now',
-                    url: 'discover/tv',
-                    params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '10' },
-                    settingKey: STORAGE_SHOW_TRENDING,
-                    mergeRequests: [
-                        { url: 'discover/tv', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
-                        { url: 'discover/movie', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
-                    ]
-                },
+                // Trending //
+                { title: 'streaming_popular_now', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_TRENDING, mergeRequests: [ { url: 'discover/tv', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }, { url: 'discover/movie', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'popularity.desc', 'vote_count.gte': '10' } } ] },
                 // New //
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
                 { title: 'Нові фільми', url: 'discover/movie', params: { with_watch_providers: '337', watch_region: '{watch_region}', sort_by: 'primary_release_date.desc', 'primary_release_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
@@ -158,8 +136,7 @@
         paramount: {
             title: 'Paramount+',
             categories: [
-                // Continue & Trending //
-                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
+                // Trending //
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_TRENDING },
                 // New //
                 { title: 'Нові серіали', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'first_air_date.desc', 'first_air_date.lte': '{current_date}', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_NEW },
@@ -168,22 +145,16 @@
                 { title: 'Paramount+ Originals', url: 'discover/tv', params: { with_networks: '4330', sort_by: 'vote_average.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE, mergeRequests: [ { url: 'discover/tv', params: { with_networks: '4330', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } }, { url: 'discover/movie', params: { with_watch_providers: '531', watch_region: '{watch_region}', sort_by: 'vote_average.desc', 'vote_count.gte': '10' } } ] },
                 { title: 'Всесвіт Йеллоустоун', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 { title: 'Блокбастери Paramount', url: 'discover/movie', params: { with_companies: '4', sort_by: 'popularity.desc', 'vote_count.gte': '10', 'vote_average.gte': '6.5' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
-                { title: 'Фантастичні світи', url: 'discover/tv', params: { with_networks: '4330', with_genres: '10765', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 { title: 'На основі книг', url: 'discover/tv', params: { with_networks: '4330', with_keywords: KEYWORD_BASED_ON_NOVEL, sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_EXCLUSIVE },
                 // Genres //
                 { title: 'Пригоди', url: 'discover/tv', params: { with_networks: '4330', with_genres: '12', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_12' },
                 { title: 'Комедії', url: 'discover/tv', params: { with_networks: '4330', with_genres: '35', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_35' },
-                { title: 'Анімація', url: 'discover/tv', params: { with_networks: '4330', with_genres: '16', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_16' },
-                { title: 'Історичні', url: 'discover/tv', params: { with_networks: '4330', with_genres: '36', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_36' },
-                { title: 'Детективи', url: 'discover/tv', params: { with_networks: '4330', with_genres: '9648', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_9648' },
                 { title: 'Бойовики та вестерни', url: 'discover/tv', params: { with_networks: '4330', with_genres: '28,37', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_28' },
-                { title: 'Трилери', url: 'discover/tv', params: { with_networks: '4330', with_genres: '53', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_53' }
             ]
         },
         origin: {
             title: 'NatGeo',
             categories: [
-                { title: 'streaming_continue_watching', continueWatching: true, settingKey: STORAGE_SHOW_CONTINUE_WATCHING },
                 { title: 'streaming_popular_now', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: STORAGE_SHOW_POPULAR_NOW },
                 // Exclusive //
                 { title: 'Космос', url: 'discover/tv', params: { with_networks: '43|1043', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '10' }, settingKey: 'streaming_show_genre_99' },
@@ -219,11 +190,9 @@
         streaming_menu_title: { en: 'Streaming', uk: 'Стрімінги' },
         streaming_popular_now: { en: 'Popular now', uk: 'Популярно зараз' },
         streaming_region_label: { en: 'Watch region', uk: 'Регіон перегляду' },
-        streaming_continue_watching: { en: 'Continue watching', uk: 'Продовжити перегляд' },
         streaming_show_trending: { en: 'Show «Trending»', uk: 'Відображати «Зараз у тренді»' },
         streaming_show_new: { en: 'Show «New»', uk: 'Відображати «Нові»' },
         streaming_show_exclusive: { en: 'Show exclusive categories', uk: 'Відображати ексклюзивні категорії' },
-        streaming_show_continue_watching: { en: 'Show «Continue watching»', uk: 'Відображати «Продовжити перегляд»' },
         streaming_show_popular_now: { en: 'Show «Popular now»', uk: 'Відображати «Популярно зараз»' },
         streaming_enabled_services_label: { en: 'Streamings', uk: 'Стримінги' },
         streaming_display_categories_label: { en: 'Display categories', uk: 'Відображати категорії' },
@@ -315,63 +284,9 @@
 
             function isStale() { return comp._streamingSessionId !== sessionId; }
 
-            // Історія перегляду: Lampa.Favorite.get({ type: 'history' }) — масив { id, method: 'tv'|'movie', time? }.
-            // Якщо додаток повертає об'єкт з .items — використовуємо його. Сортуємо за time/date (новіші спочатку), беремо 20.
-            function getContinueWatchingList() {
-                if (!Lampa.Favorite || typeof Lampa.Favorite.get !== 'function') return [];
-                var raw = Lampa.Favorite.get({ type: 'history' });
-                if (!raw) raw = Lampa.Favorite.get({ type: 'viewing_history' });
-                if (!raw) return [];
-                var history = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.items) ? raw.items : []);
-                if (!history.length) return [];
-                var sorted = history.slice();
-                var first = sorted[0];
-                var timeKey = first && (first.time != null ? 'time' : first.date != null ? 'date' : first.updated_at != null ? 'updated_at' : first.created_at != null ? 'created_at' : null);
-                if (timeKey) {
-                    sorted.sort(function (a, b) {
-                        var ta = a[timeKey];
-                        var tb = b[timeKey];
-                        if (typeof ta === 'number' && typeof tb === 'number') return tb - ta;
-                        if (typeof ta === 'string' && typeof tb === 'string') return tb.localeCompare(ta);
-                        return 0;
-                    });
-                }
-                return sorted.slice(0, 20);
-            }
-
-            function filterContinueByService(list, serviceId, done) {
-                if (!list.length) { done([]); return; }
-                var providerId = SERVICE_PROVIDER_IDS[serviceId];
-                if (providerId == null) { done(list); return; }
-                var region = getWatchRegion();
-                var filtered = [];
-                var pending = list.length;
-                function check() { if (--pending === 0) done(filtered); }
-                list.forEach(function (item) {
-                    var id = item.id;
-                    var path = item.method === 'tv' ? 'tv/' + id + '/watch/providers' : 'movie/' + id + '/watch/providers';
-                    var url = Lampa.TMDB.api(path + '?api_key=' + Lampa.TMDB.key());
-                    network.silent(url, function (res) {
-                        if (isStale()) { check(); return; }
-                        var regionData = res && res.results && res.results[region];
-                        var flatrate = regionData && regionData.flatrate;
-                        if (flatrate && flatrate.some(function (p) { return p.provider_id === providerId; })) filtered.push(item);
-                        check();
-                    }, function () { check(); });
-                });
-            }
-
             function startRest() {
                 if (isStale()) return;
                 categories.forEach(function (cat, index) {
-                    if (cat.continueWatching) {
-                        var list = getContinueWatchingList();
-                        filterContinueByService(list, object.service_id, function (filtered) {
-                            if (isStale()) return;
-                            status.append(String(index), { results: filtered });
-                        });
-                        return;
-                    }
                     if (cat.collectionId != null) {
                         var collUrl = Lampa.TMDB.api('collection/' + cat.collectionId + '?api_key=' + Lampa.TMDB.key() + '&language=' + (Lampa.Storage.get('language') || 'uk'));
                         network.silent(collUrl, function (json) {
@@ -429,10 +344,6 @@
                     if (cat.title === 'streaming_popular_now') {
                         rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_popular_now')) || 'Популярно зараз';
                         if (rowTitle === 'streaming_popular_now') rowTitle = 'Популярно зараз';
-                    }
-                    if (cat.title === 'streaming_continue_watching') {
-                        rowTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_continue_watching')) || 'Продовжити перегляд';
-                        if (rowTitle === 'streaming_continue_watching') rowTitle = 'Продовжити перегляд';
                     }
                     fulldata.push({
                         title: rowTitle,
@@ -567,24 +478,22 @@
             }
         });
         var categoriesLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_display_categories_label')) || 'Відображати категорії';
-        var categoryOptions = [
-            { key: STORAGE_SHOW_CONTINUE_WATCHING, label: 'streaming_show_continue_watching', default: true },
-            { key: STORAGE_SHOW_TRENDING, label: 'streaming_show_trending', default: true },
-            { key: STORAGE_SHOW_NEW, label: 'streaming_show_new', default: true },
-            { key: STORAGE_SHOW_EXCLUSIVE, label: 'streaming_show_exclusive', default: true },
-            { key: STORAGE_SHOW_POPULAR_NOW, label: 'streaming_show_popular_now', default: true },
-            { key: 'streaming_show_genre_12', label: 'streaming_show_genre_12', default: true },
-            { key: 'streaming_show_genre_35', label: 'streaming_show_genre_35', default: true },
-            { key: 'streaming_show_genre_16', label: 'streaming_show_genre_16', default: true },
-            { key: 'streaming_show_genre_36', label: 'streaming_show_genre_36', default: true },
-            { key: 'streaming_show_genre_9648', label: 'streaming_show_genre_9648', default: true },
-            { key: 'streaming_show_genre_28', label: 'streaming_show_genre_28', default: true },
-            { key: 'streaming_show_genre_53', label: 'streaming_show_genre_53', default: true },
-            { key: 'streaming_show_genre_10765', label: 'streaming_show_genre_10765', default: true },
-            { key: 'streaming_show_genre_99', label: 'streaming_show_genre_99', default: true },
-            { key: 'streaming_show_genre_18', label: 'streaming_show_genre_18', default: true },
-            { key: 'streaming_show_genre_10751', label: 'streaming_show_genre_10751', default: true }
-        ];
+        var categoryOptions = (function () {
+            var seen = {};
+            var list = [];
+            Object.keys(SERVICE_CONFIGS).forEach(function (sid) {
+                var cats = SERVICE_CONFIGS[sid].categories;
+                if (!cats) return;
+                cats.forEach(function (cat) {
+                    var key = cat.settingKey;
+                    if (key && !seen[key]) {
+                        seen[key] = true;
+                        list.push({ key: key, label: key, default: true });
+                    }
+                });
+            });
+            return list;
+        })();
         var t = function (key) { return (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(key)) || key; };
         Lampa.SettingsApi.addParam({
             component: 'streaming_sqr_settings',
