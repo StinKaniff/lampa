@@ -2,23 +2,17 @@
     'use strict';
 
     var ORIGIN_COUNTRIES_NO_ASIA = 'US|GB|CA|AU|DE|FR|IT|ES|PL|UA|NL|SE|NO|BR|MX|AR|BE|CH|AT|PT|IE|NZ|ZA|RU|TR|FI|DK|CZ|RO|HU|GR';
-    var STORAGE_PREFIX_CAT = 'streaming_cat_';
     var STORAGE_WATCH_REGION = 'streaming_watch_region';
     var STORAGE_ENABLED_SERVICES = 'streaming_enabled_services';
-    // За замовч. увімкнено: 1–3, 5–8, 11–13 (без дубліката Original — є в ексклюзивах)
-    var DEFAULT_ON_IDS = { 1: true, 2: true, 3: true, 5: true, 6: true, 7: true, 8: true, 11: true, 12: true, 13: true };
     var MAX_CATEGORIES = 25;
 
-    function isCatEnabled(index) {
-        var key = STORAGE_PREFIX_CAT + index;
-        var v = Lampa.Storage.get(key);
-        if (v === undefined || v === null) return !!DEFAULT_ON_IDS[index];
-        return v !== false && v !== 'false';
-    }
-
-    function setCatEnabled(index, value) {
-        Lampa.Storage.set(STORAGE_PREFIX_CAT + index, !!value);
-    }
+    // TMDB keyword IDs for tag filter (id-slug format from user)
+    var TAGS = [
+        { id: '5096', slug: 'natural-disaster', titleKey: 'streaming_tag_natural_disaster' },
+        { id: '363309', slug: 'star-wars', titleKey: 'streaming_tag_star_wars' },
+        { id: '161176', slug: 'space-opera', titleKey: 'streaming_tag_space_opera' },
+        { id: '818', slug: 'based-on-novel-or-book', titleKey: 'streaming_tag_based_on_novel' }
+    ];
 
     function getWatchRegion() {
         var s = Lampa.Storage.get(STORAGE_WATCH_REGION);
@@ -57,6 +51,13 @@
         return Lampa.TMDB.api(url + '?' + arr.join('&'));
     }
 
+    function buildSearchUrl(query, page) {
+        var lang = Lampa.Storage.get('language') || 'uk';
+        var arr = ['api_key=' + Lampa.TMDB.key(), 'language=' + lang, 'query=' + encodeURIComponent(query)];
+        if (page != null) arr.push('page=' + page);
+        return Lampa.TMDB.api('search/multi?' + arr.join('&'));
+    }
+
     // 1–3: фіксовані; 5–8: ексклюзиви (назва стримінгу Original тощо); 11–25: жанри
     var CATEGORY_TEMPLATE = [
         { id: 1, titleKey: 'streaming_trending', section: 'trending' },
@@ -66,10 +67,7 @@
         { id: 6, titleKey: 'streaming_exclusive_2', section: 'exclusive' },
         { id: 7, titleKey: 'streaming_exclusive_3', section: 'exclusive' },
         { id: 8, titleKey: 'streaming_exclusive_4', section: 'exclusive' },
-        { id: 11, titleKey: 'streaming_sci_fi', section: 'genre', genres: '10765' },
-        { id: 12, titleKey: 'streaming_detectives', section: 'genre', genres: '9648' },
         { id: 13, titleKey: 'streaming_documentary', section: 'genre', genres: '99' },
-        { id: 14, titleKey: 'streaming_historical', section: 'genre', genres: '36' },
         { id: 15, titleKey: 'streaming_geeked', section: 'genre', genres: '878,14,28,12,10759,10765' },
         { id: 16, titleKey: 'streaming_crime_mystery', section: 'genre', genres: '80,9648,53' },
         { id: 17, titleKey: 'streaming_war_history', section: 'genre', genres: '10752,36,10768' },
@@ -92,39 +90,53 @@
         return b && b.movie ? subParams(b.movie, service) : {};
     }
 
-    function getCategoryRequest(service, cat, index) {
+    function addKeywordFilter(params, object) {
+        if (object && object.tagKeywordId) {
+            var p = Object.assign({}, params);
+            p.with_keywords = object.tagKeywordId;
+            return p;
+        }
+        return params;
+    }
+
+    function getCategoryRequest(service, cat, index, object) {
+        if (cat.section === 'search') {
+            if (!object || !object.searchQuery || !object.searchQuery.trim()) return null;
+            return { url: 'search/multi', params: { query: object.searchQuery.trim() }, isSearch: true };
+        }
         var baseTv = getBaseParams(service);
         var baseMovie = getBaseParamsMovie(service);
         var opts = { url: 'discover/tv', params: null, mergeRequests: null };
 
         if (cat.section === 'trending') {
-            opts.params = Object.assign({ sort_by: 'popularity.desc', 'vote_count.gte': '10' }, baseTv);
+            opts.params = addKeywordFilter(Object.assign({ sort_by: 'popularity.desc', 'vote_count.gte': '10' }, baseTv), object);
             if (service.mergeTvMovieTrending) {
                 opts.mergeRequests = [
                     { url: 'discover/tv', params: opts.params },
-                    { url: 'discover/movie', params: Object.assign({ sort_by: 'popularity.desc', 'vote_count.gte': '10' }, baseMovie) }
+                    { url: 'discover/movie', params: addKeywordFilter(Object.assign({ sort_by: 'popularity.desc', 'vote_count.gte': '10' }, baseMovie), object) }
                 ];
             }
             return opts;
         }
         if (cat.section === 'new_series') {
-            opts.params = Object.assign({ sort_by: 'first_air_date.desc', 'first_air_date.lte': getCurrentDate(), 'vote_count.gte': '10' }, baseTv);
+            opts.params = addKeywordFilter(Object.assign({ sort_by: 'first_air_date.desc', 'first_air_date.lte': getCurrentDate(), 'vote_count.gte': '10' }, baseTv), object);
             return opts;
         }
         if (cat.section === 'new_movies') {
-            return { url: 'discover/movie', params: Object.assign({ sort_by: 'primary_release_date.desc', 'primary_release_date.lte': getCurrentDate(), 'vote_count.gte': '10' }, baseMovie) };
+            return { url: 'discover/movie', params: addKeywordFilter(Object.assign({ sort_by: 'primary_release_date.desc', 'primary_release_date.lte': getCurrentDate(), 'vote_count.gte': '10' }, baseMovie), object) };
         }
         if (cat.section === 'exclusive') {
             var exIdx = index - 5;
             var list = service.exclusives || [];
             var ex = list[exIdx];
             if (!ex) return null;
-            if (ex.mergeRequests) return { mergeRequests: ex.mergeRequests.map(function (r) { return { url: r.url, params: subParams(r.params, service) }; }) };
-            return { url: ex.url, params: subParams(ex.params, service) };
+            if (ex.mergeRequests) return { mergeRequests: ex.mergeRequests.map(function (r) { return { url: r.url, params: addKeywordFilter(subParams(r.params, service), object) }; }) };
+            return { url: ex.url, params: addKeywordFilter(subParams(ex.params, service), object) };
         }
         if (cat.section === 'genre') {
             var g = Object.assign({ sort_by: 'popularity.desc', 'vote_count.gte': '10' }, baseTv);
             if (cat.keywords) g.with_keywords = cat.keywords;
+            else g = addKeywordFilter(g, object);
             if (cat.genres) {
                 var genreIds = cat.genres.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
                 if (genreIds.length > 1) {
@@ -239,10 +251,7 @@
         streaming_exclusive_2: { en: 'Exclusive 2', uk: 'Ексклюзив 2' },
         streaming_exclusive_3: { en: 'Exclusive 3', uk: 'Ексклюзив 3' },
         streaming_exclusive_4: { en: 'Exclusive 4', uk: 'Ексклюзив 4' },
-        streaming_sci_fi: { en: 'Sci-Fi worlds', uk: 'Фантастичні світи' },
-        streaming_detectives: { en: 'Detectives', uk: 'Детективи' },
         streaming_documentary: { en: 'Documentary', uk: 'Документальні' },
-        streaming_historical: { en: 'Historical', uk: 'Історичні' },
         streaming_geeked: { en: 'Geeked: Sci-Fi, Fantasy, Superhero & More', uk: 'Гік-всесвіт: Фантастика, Фентезі та Герої' },
         streaming_crime_mystery: { en: 'Crime & Mystery', uk: 'Темні історії: Кримінал, Детективи, Трилери' },
         streaming_war_history: { en: 'War & History', uk: 'Історія та великі конфлікти' },
@@ -269,8 +278,15 @@
         streaming_space: { en: 'Space', uk: 'Космос' },
         streaming_wildlife: { en: 'Wildlife', uk: 'Дика природа' },
         streaming_enabled_services_label: { en: 'Streamings', uk: 'Стримінги' },
-        streaming_display_categories_label: { en: 'Display categories (10 on by default)', uk: 'Відображати категорії (за замовч. увімкнено 10)' },
-        streaming_more_label: { en: 'See all', uk: 'Дивитись усі' }
+        streaming_more_label: { en: 'See all', uk: 'Дивитись усі' },
+        streaming_search: { en: 'Search', uk: 'Пошук' },
+        streaming_search_results: { en: 'Search results', uk: 'Результати пошуку' },
+        streaming_tag_label: { en: 'Tag', uk: 'Тег' },
+        streaming_reset_filters: { en: 'Reset', uk: 'Скинути' },
+        streaming_tag_natural_disaster: { en: 'Natural disaster', uk: 'Стихійні лиха' },
+        streaming_tag_star_wars: { en: 'Star Wars', uk: 'Зоряні війни' },
+        streaming_tag_space_opera: { en: 'Space opera', uk: 'Космічна опера' },
+        streaming_tag_based_on_novel: { en: 'Based on novel or book', uk: 'За книгою' }
     });
 
     var WATCH_REGIONS = [
@@ -295,18 +311,31 @@
         return (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(key)) || key;
     }
 
-    function buildEffectiveCategories(serviceId) {
+    function buildEffectiveCategories(serviceId, object) {
         var service = SERVICE_CONFIGS[serviceId];
         if (!service) return [];
         var list = [];
+        var searchQuery = object && object.searchQuery && object.searchQuery.trim ? object.searchQuery.trim() : '';
+        if (searchQuery) {
+            var searchTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_search_results')) || 'Search results';
+            list.push({
+                index: 0,
+                titleKey: 'streaming_search_results',
+                title: searchTitle + ': ' + searchQuery,
+                url: 'search/multi',
+                params: { query: searchQuery },
+                mergeRequests: null,
+                isSearch: true
+            });
+        }
         for (var i = 0; i < CATEGORY_TEMPLATE.length; i++) {
             var cat = CATEGORY_TEMPLATE[i];
-            if (!cat || !isCatEnabled(cat.id)) continue;
+            if (!cat) continue;
             if (cat.section === 'exclusive') {
                 var exs = service.exclusives || [];
                 if (!exs[cat.id - 5]) continue;
             }
-            var req = getCategoryRequest(service, cat, cat.id);
+            var req = getCategoryRequest(service, cat, cat.id, object);
             if (!req || (!req.params && !req.mergeRequests)) continue;
             var firstReq = req.mergeRequests && req.mergeRequests[0];
             list.push({
@@ -315,10 +344,59 @@
                 title: getRowTitle(cat, service, cat.id),
                 url: req.url || (firstReq && firstReq.url),
                 params: req.params || (firstReq && firstReq.params),
-                mergeRequests: req.mergeRequests
+                mergeRequests: req.mergeRequests,
+                isSearch: req.isSearch || false
             });
         }
         return list;
+    }
+
+    function buildStreamingHeader(object, serviceId) {
+        var header = document.createElement('div');
+        header.className = 'streaming-sqr-header';
+        header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;';
+        var searchBtn = document.createElement('div');
+        searchBtn.className = 'simple-button simple-button--invisible selector';
+        searchBtn.setAttribute('data-action', 'streaming_search');
+        searchBtn.innerHTML = '<svg width="23" height="22" viewBox="0 0 23 22" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="9.9964" cy="9.63489" r="8.43556" stroke="currentColor" stroke-width="2.4"></circle><path d="M20.7768 20.4334L18.2135 17.8701" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg><span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_search')) || 'Search') + '</span>';
+        $(searchBtn).on('hover:enter', function () {
+            Lampa.Input.edit({ free: true, nosave: true, nomic: true, value: object.searchQuery || '' }, function (val) {
+                if (val != null) {
+                    var next = Object.assign({}, object, { searchQuery: (val && val.trim()) ? val.trim() : '', tagKeywordId: object.tagKeywordId || null });
+                    Lampa.Activity.replace(next);
+                }
+            });
+        });
+        var tagBtn = document.createElement('div');
+        tagBtn.className = 'simple-button simple-button--invisible selector';
+        tagBtn.setAttribute('data-action', 'streaming_tag');
+        tagBtn.innerHTML = '<span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag') + '</span>';
+        $(tagBtn).on('hover:enter', function () {
+            var items = TAGS.map(function (t) {
+                return { title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(t.titleKey)) || t.slug, value: t.id, id: t.id };
+            });
+            items.unshift({ title: '— ' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + ' —', value: '', id: null });
+            Lampa.Select.show({
+                title: (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag',
+                items: items,
+                onSelect: function (a) {
+                    var next = Object.assign({}, object, { tagKeywordId: a.id || null });
+                    Lampa.Activity.replace(next);
+                },
+                onBack: function () { Lampa.Controller.toggle('content'); }
+            });
+        });
+        var resetBtn = document.createElement('div');
+        resetBtn.className = 'simple-button simple-button--invisible selector';
+        resetBtn.innerHTML = '<span>' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + '</span>';
+        $(resetBtn).on('hover:enter', function () {
+            var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null });
+            Lampa.Activity.replace(next);
+        });
+        header.appendChild(searchBtn);
+        header.appendChild(tagBtn);
+        header.appendChild(resetBtn);
+        return header;
     }
 
     function StreamingMain(object) {
@@ -329,13 +407,12 @@
             comp.create = function () { this.empty(); return this.render(); };
             return comp;
         }
-        var categories = buildEffectiveCategories(serviceId);
-        if (!categories.length) {
-            comp.create = function () { this.empty(); return this.render(); };
-            return comp;
-        }
-
         comp.create = function () {
+            var categories = buildEffectiveCategories(serviceId, object);
+            if (!categories.length) {
+                this.empty();
+                return this.render();
+            }
             var _this = this;
             var sessionId = Date.now();
             comp._streamingSessionId = sessionId;
@@ -345,8 +422,17 @@
             this.activity.loader(true);
             function isStale() { return comp._streamingSessionId !== sessionId; }
 
-            function doRequest(url, params, page, onOk, onErr) {
-                var fullUrl = buildDiscoverUrl(url, params || {}, page);
+            function doRequest(cat, index, onOk, onErr) {
+                if (cat.isSearch && cat.params && cat.params.query) {
+                    var fullUrl = buildSearchUrl(cat.params.query, 1);
+                    network.silent(fullUrl, function (json) {
+                        if (!json || !json.results) return onOk({ results: [] });
+                        var filtered = json.results.filter(function (r) { return r && (r.media_type === 'tv' || r.media_type === 'movie'); }).slice(0, 20);
+                        onOk({ results: filtered });
+                    }, onErr);
+                    return;
+                }
+                var fullUrl = buildDiscoverUrl(cat.url, cat.params || {}, 1);
                 network.silent(fullUrl, onOk, onErr);
             }
 
@@ -364,7 +450,10 @@
                         });
                     }
                     cat.mergeRequests.forEach(function (r) {
-                        doRequest(r.url, r.params, 1, function (json) {
+                        var url = r.url;
+                        var params = r.params;
+                        var fullUrl = buildDiscoverUrl(url, params || {}, 1);
+                        network.silent(fullUrl, function (json) {
                             if (isStale()) return;
                             if (json && json.results && json.results.length) allResults = allResults.concat(json.results);
                             pending--;
@@ -377,7 +466,7 @@
                         });
                     });
                 } else {
-                    doRequest(cat.url, cat.params, 1, function (json) {
+                    doRequest(cat, index, function (json) {
                         if (isStale()) return;
                         status.append(String(index), json);
                     }, function () {
@@ -397,8 +486,7 @@
                     var cat = categories[parseInt(key, 10)];
                     if (!cat || !results.length) return;
                     Lampa.Utils.extendItemsParams(results, { style: { name: 'wide' } });
-                    var rowIcon = cat.index === 1 ? 'fire' : undefined;
-                    fulldata.push({ title: cat.title, results: results, url: cat.url, params: cat.params, rowIcon: rowIcon });
+                    fulldata.push({ title: cat.title, results: results, url: cat.url, params: cat.params });
                 });
                 return fulldata;
             }
@@ -409,15 +497,10 @@
                 var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
-                    var root = _this.render();
-                    if (root && root.find) {
-                        root.find('.items-line').each(function (idx) {
-                            var item = fulldata[idx];
-                            if (item && item.rowIcon === 'fire') {
-                                var photo = $(this).find('.full-person__photo').first();
-                                if (photo.length) photo.html('<svg><use xlink:href="#sprite-fire"></use></svg>');
-                            }
-                        });
+                    var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
+                    if (root) {
+                        var headerEl = buildStreamingHeader(object, serviceId);
+                        if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
                     }
                     _this.activity.loader(false);
                 } else {
@@ -536,30 +619,6 @@
                 });
             }
         });
-        var categoriesLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_display_categories_label')) || 'Відображати категорії';
-        var t = function (key) { return (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(key)) || key; };
-        Lampa.SettingsApi.addParam({
-            component: 'streaming_sqr_settings',
-            param: { name: 'streaming_display_categories', type: 'button', default: null },
-            field: { name: categoriesLabel },
-            onChange: function () {
-                var items = CATEGORY_TEMPLATE.map(function (cat) {
-                    var label = cat.section === 'exclusive' ? t(cat.titleKey) : t(cat.titleKey);
-                    return { title: cat.id + '. ' + label, value: cat.id, checkbox: true, checked: isCatEnabled(cat.id) };
-                });
-                Lampa.Select.show({
-                    title: categoriesLabel,
-                    items: items,
-                    onCheck: function (item) {
-                        setCatEnabled(item.value, !!item.checked);
-                    },
-                    onBack: function () {
-                        if (Lampa.Settings && Lampa.Settings.update) Lampa.Settings.update();
-                        if (Lampa.Controller && Lampa.Controller.toggle) Lampa.Controller.toggle('settings_component');
-                    }
-                });
-            }
-        });
     }
 
     var MENU_ANCHOR = '[data-action="catalog"]';
@@ -582,7 +641,9 @@
                 component: 'streaming_main',
                 service_id: sid,
                 title: config.title,
-                page: 1
+                page: 1,
+                searchQuery: '',
+                tagKeywordId: null
             });
         });
         if (insertAfter && insertAfter.length) insertAfter.after(itemHtml);
