@@ -996,31 +996,17 @@
             if (object.originCountry) params.with_origin_country = object.originCountry === 'EU' ? ORIGIN_COUNTRY_EU : object.originCountry;
             return params;
         }
-        var streamingHeaderEl = null;
-        var streamingRootEl = null;
         function prependViewHeader(_this) {
             var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
-            if (root) {
-                var headerEl = buildStreamingViewHeader(object);
-                if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
-                streamingHeaderEl = headerEl;
-                streamingRootEl = root;
+            if (!root) return;
+            var headerEl = buildStreamingViewHeader(object);
+            headerEl.classList.add('streaming-sqr-header--inline');
+            var contentArea = (root.querySelector && root.querySelector('.category-full')) || (root.children && root.children[0]) || root;
+            if (contentArea.insertBefore) {
+                contentArea.insertBefore(headerEl, contentArea.firstChild || null);
+            } else {
+                root.insertBefore(headerEl, root.firstChild || null);
             }
-        }
-        function applyStreamingViewCollection() {
-            if (!streamingHeaderEl || !streamingRootEl || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
-            var content = streamingRootEl.children && streamingRootEl.children.length > 1 ? streamingRootEl.children[1] : streamingRootEl;
-            Lampa.Controller.collectionSet(streamingHeaderEl, content);
-            if (typeof Lampa.Controller.collectionFocus === 'function') {
-                Lampa.Controller.collectionFocus(false, streamingHeaderEl, content);
-            }
-        }
-        var originalStart = comp.start;
-        if (originalStart) {
-            comp.start = function () {
-                originalStart.apply(this, arguments);
-                applyStreamingViewCollection();
-            };
         }
         comp.create = function () {
             var _this = this;
@@ -1036,12 +1022,10 @@
                     _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
-                    setTimeout(applyStreamingViewCollection, 0);
                 }, function () {
                     _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
-                    setTimeout(applyStreamingViewCollection, 0);
                 });
             } else {
                 var url = object.url;
@@ -1054,12 +1038,10 @@
                     _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
-                    setTimeout(applyStreamingViewCollection, 0);
                 }, function () {
                     _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
-                    setTimeout(applyStreamingViewCollection, 0);
                 });
             }
             return this.render();
