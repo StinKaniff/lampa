@@ -996,11 +996,42 @@
             if (object.originCountry) params.with_origin_country = object.originCountry === 'EU' ? ORIGIN_COUNTRY_EU : object.originCountry;
             return params;
         }
+        function attachHeaderFocusAndKeys(headerEl) {
+            var selectors = headerEl.querySelectorAll ? [].slice.call(headerEl.querySelectorAll('.selector')) : [];
+            function indexOf(el) { for (var i = 0; i < selectors.length; i++) if (selectors[i] === el) return i; return -1; }
+            selectors.forEach(function (btn) {
+                btn.addEventListener('keydown', function (e) {
+                    var key = e.key;
+                    if (key === 'Enter' || key === ' ') {
+                        e.preventDefault();
+                        try { if (typeof $ !== 'undefined' && $(btn).trigger) $(btn).trigger('hover:enter'); } catch (err) {}
+                        return;
+                    }
+                    if (key === 'ArrowLeft') {
+                        e.preventDefault();
+                        var i = indexOf(btn);
+                        if (i > 0 && selectors[i - 1].focus) selectors[i - 1].focus();
+                        return;
+                    }
+                    if (key === 'ArrowRight') {
+                        e.preventDefault();
+                        var j = indexOf(btn);
+                        if (j >= 0 && j < selectors.length - 1 && selectors[j + 1].focus) selectors[j + 1].focus();
+                        return;
+                    }
+                });
+            });
+        }
         function prependViewHeader(_this) {
             var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
             if (root) {
                 var headerEl = buildStreamingViewHeader(object);
                 if (root.prepend) root.prepend(headerEl); else if (root.insertBefore && root.firstChild) root.insertBefore(headerEl, root.firstChild); else if (root.appendChild) root.insertBefore(headerEl, root.firstChild);
+                attachHeaderFocusAndKeys(headerEl);
+                setTimeout(function () {
+                    var first = headerEl.querySelector('.selector');
+                    if (first && first.focus) first.focus();
+                }, 350);
             }
         }
         comp.create = function () {
