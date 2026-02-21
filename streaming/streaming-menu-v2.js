@@ -996,6 +996,8 @@
             if (object.originCountry) params.with_origin_country = object.originCountry === 'EU' ? ORIGIN_COUNTRY_EU : object.originCountry;
             return params;
         }
+        var streamingHeaderEl = null;
+        var streamingRootEl = null;
         function prependViewHeader(_this) {
             var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
             if (!root) return;
@@ -1007,6 +1009,23 @@
             } else {
                 root.insertBefore(headerEl, null);
             }
+            streamingHeaderEl = headerEl;
+            streamingRootEl = root;
+        }
+        function applyStreamingViewCollection() {
+            if (!streamingHeaderEl || !streamingRootEl || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
+            var content = streamingRootEl.children && streamingRootEl.children.length > 1 ? streamingRootEl.children[1] : streamingRootEl;
+            Lampa.Controller.collectionSet(streamingHeaderEl, content);
+            if (typeof Lampa.Controller.collectionFocus === 'function') {
+                Lampa.Controller.collectionFocus(false, streamingHeaderEl, content);
+            }
+        }
+        var originalStart = comp.start;
+        if (originalStart) {
+            comp.start = function () {
+                originalStart.apply(this, arguments);
+                applyStreamingViewCollection();
+            };
         }
         comp.create = function () {
             var _this = this;
@@ -1022,10 +1041,12 @@
                     _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
+                    setTimeout(applyStreamingViewCollection, 0);
                 }, function () {
                     _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
+                    setTimeout(applyStreamingViewCollection, 0);
                 });
             } else {
                 var url = object.url;
@@ -1038,10 +1059,12 @@
                     _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
+                    setTimeout(applyStreamingViewCollection, 0);
                 }, function () {
                     _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
+                    setTimeout(applyStreamingViewCollection, 0);
                 });
             }
             return this.render();
