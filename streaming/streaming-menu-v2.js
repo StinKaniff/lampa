@@ -1009,7 +1009,7 @@
             if (!root) return;
             var headerEl = buildStreamingViewHeader(object, {
                 onReturnFocus: function () {
-                    applyStreamingViewCollection(true);
+                    applyStreamingViewCollection(false);
                     scheduleCollectionApply();
                 }
             });
@@ -1023,19 +1023,21 @@
             streamingHeaderEl = headerEl;
             streamingRootEl = root;
         }
-        function applyStreamingViewCollection(focusHeader) {
+        function applyStreamingViewCollection(focusOnHeader) {
             if (!streamingHeaderEl || !streamingRootEl || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
             var content = streamingRootEl.children && streamingRootEl.children.length > 1 ? streamingRootEl.children[1] : streamingRootEl;
             Lampa.Controller.collectionSet(streamingHeaderEl, content);
             if (typeof Lampa.Controller.collectionFocus === 'function') {
-                var focusEl = focusHeader && streamingHeaderEl.querySelector && streamingHeaderEl.querySelector('.selector');
-                Lampa.Controller.collectionFocus(focusEl || focusHeader === true, streamingHeaderEl, content);
+                var focusEl = focusOnHeader
+                    ? (streamingHeaderEl.querySelector && streamingHeaderEl.querySelector('.selector'))
+                    : (content.querySelector && content.querySelector('.selector'));
+                Lampa.Controller.collectionFocus(focusEl || focusOnHeader === true, streamingHeaderEl, content);
             }
         }
         function scheduleCollectionApply() {
             setTimeout(applyStreamingViewCollection.bind(null, false), 0);
-            setTimeout(applyStreamingViewCollection.bind(null, true), 150);
-            setTimeout(applyStreamingViewCollection.bind(null, true), 450);
+            setTimeout(applyStreamingViewCollection.bind(null, false), 150);
+            setTimeout(applyStreamingViewCollection.bind(null, false), 450);
         }
         
         var originalStart = comp.start;
@@ -1050,7 +1052,7 @@
                         var prevToggle = contentCtrl.toggle;
                         Lampa.Controller.add('content', Object.assign({}, contentCtrl, {
                             toggle: function () {
-                                applyStreamingViewCollection(true);
+                                applyStreamingViewCollection(false);
                                 if (prevToggle) prevToggle.call(self);
                             }
                         }));
