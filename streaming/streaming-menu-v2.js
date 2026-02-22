@@ -903,99 +903,7 @@
             setTimeout(applyMainCollection.bind(null, true), 150);
             setTimeout(applyMainCollection.bind(null, true), 450);
         }
-        comp._viewHeaderEl = null;
-        comp._viewRootEl = null;
-        function applyViewOnMainCollection(focusHeader) {
-            var header = comp._viewHeaderEl;
-            var root = comp._viewRootEl;
-            if (!header || !root || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
-            var content = root.children && root.children.length > 1 ? root.children[1] : root;
-            Lampa.Controller.collectionSet(header, content);
-            if (typeof Lampa.Controller.collectionFocus === 'function') {
-                Lampa.Controller.collectionFocus(focusHeader === true, header, content);
-            }
-        }
-        function scheduleViewCollectionApply() {
-            setTimeout(applyViewOnMainCollection.bind(null, false), 0);
-            setTimeout(applyViewOnMainCollection.bind(null, true), 150);
-            setTimeout(applyViewOnMainCollection.bind(null, true), 450);
-        }
         comp.create = function () {
-            if (object.viewUrl) {
-                var viewObject = {
-                    url: object.viewUrl,
-                    params: object.viewParams || {},
-                    title: object.viewTitle || object.title,
-                    page: 1,
-                    tagKeywordId: object.tagKeywordId || null,
-                    genreId: object.genreId != null ? object.genreId : null,
-                    originCountry: object.originCountry || null,
-                    searchQuery: (object.searchQuery && object.searchQuery.trim) ? object.searchQuery.trim() : ''
-                };
-                var viewComp = new Lampa.InteractionCategory(viewObject);
-                var _this = this;
-                var viewNetwork = new Lampa.Reguest();
-                this.activity.loader(true);
-                var viewParams = getViewParamsFromObject(viewObject);
-                var viewFullUrl = buildDiscoverUrl(object.viewUrl, viewParams, 1);
-                viewNetwork.silent(viewFullUrl, function (json) {
-                    var results = (json && json.results) ? json.results : [];
-                    var totalPages = (json && json.total_pages != null) ? json.total_pages : 1;
-                    var totalResults = (json && json.total_results != null) ? json.total_results : 0;
-                    viewComp.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
-                    var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
-                    if (!root) { _this.activity.loader(false); return; }
-                    while (root.firstChild) root.removeChild(root.firstChild);
-                    var viewHeader = buildStreamingViewHeader(viewObject, {
-                        onReturnFocus: function () {
-                            applyViewOnMainCollection(true);
-                            scheduleViewCollectionApply();
-                        }
-                    });
-                    root.appendChild(viewHeader);
-                    root.appendChild(viewComp.render());
-                    comp._viewHeaderEl = viewHeader;
-                    comp._viewRootEl = root;
-                    _this.activity.loader(false);
-                    scheduleViewCollectionApply();
-                    comp.nextPageRequest = function (obj, resolve, reject) {
-                        var page = (obj && obj.page) ? obj.page : 1;
-                        viewNetwork.silent(buildDiscoverUrl(object.viewUrl, getViewParamsFromObject(viewObject), page), resolve, reject);
-                    };
-                    var origStart = comp.start;
-                    comp.start = function () {
-                        if (origStart) origStart.apply(this, arguments);
-                        scheduleViewCollectionApply();
-                    };
-                }, function () {
-                    viewComp.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
-                    var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
-                    if (!root) { _this.activity.loader(false); return; }
-                    while (root.firstChild) root.removeChild(root.firstChild);
-                    var viewHeader = buildStreamingViewHeader(viewObject, {
-                        onReturnFocus: function () {
-                            applyViewOnMainCollection(true);
-                            scheduleViewCollectionApply();
-                        }
-                    });
-                    root.appendChild(viewHeader);
-                    root.appendChild(viewComp.render());
-                    comp._viewHeaderEl = viewHeader;
-                    comp._viewRootEl = root;
-                    _this.activity.loader(false);
-                    scheduleViewCollectionApply();
-                    comp.nextPageRequest = function (obj, resolve, reject) {
-                        var page = (obj && obj.page) ? obj.page : 1;
-                        viewNetwork.silent(buildDiscoverUrl(object.viewUrl, getViewParamsFromObject(viewObject), page), resolve, reject);
-                    };
-                    var origStart = comp.start;
-                    comp.start = function () {
-                        if (origStart) origStart.apply(this, arguments);
-                        scheduleViewCollectionApply();
-                    };
-                });
-                return this.render();
-            }
             var mainObject = Object.assign({}, object, { tagKeywordId: null, searchQuery: '' });
             var categories = buildEffectiveCategories(serviceId, mainObject);
             if (!categories.length) {
@@ -1104,6 +1012,16 @@
                 comp.start = function () {
                     originalStart.apply(this, arguments);
                     scheduleMainCollectionApply();
+                    var contentCtrl = Lampa.Controller.enabled && Lampa.Controller.enabled();
+                    if (contentCtrl && contentCtrl.toggle) {
+                        var prevToggle = contentCtrl.toggle;
+                        Lampa.Controller.add('content', Object.assign({}, contentCtrl, {
+                            toggle: function () {
+                                applyMainCollection(true);
+                                if (prevToggle) prevToggle.call(this);
+                            }
+                        }));
+                    }
                 };
             }
             return this.render();
@@ -1112,12 +1030,11 @@
         comp.onMore = function (data) {
             if (!data.url) return;
             Lampa.Activity.push({
-                component: 'streaming_main',
-                service_id: object.service_id,
+                url: data.url,
+                params: data.params,
                 title: data.title,
-                viewUrl: data.url,
-                viewParams: data.params,
-                viewTitle: data.title,
+                component: 'streaming_view',
+                page: 1,
                 tagKeywordId: object.tagKeywordId || null,
                 genreId: object.genreId != null ? object.genreId : null,
                 originCountry: object.originCountry || null,
@@ -1182,6 +1099,16 @@
             comp.start = function () {
                 originalStart.apply(this, arguments);
                 scheduleCollectionApply();
+                var contentCtrl = Lampa.Controller.enabled && Lampa.Controller.enabled();
+                if (contentCtrl && contentCtrl.toggle) {
+                    var prevToggle = contentCtrl.toggle;
+                    Lampa.Controller.add('content', Object.assign({}, contentCtrl, {
+                        toggle: function () {
+                            applyStreamingViewCollection(true);
+                            if (prevToggle) prevToggle.call(this);
+                        }
+                    }));
+                }
             };
         }
         comp.create = function () {
