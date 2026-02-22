@@ -1,15 +1,18 @@
 (function () {
     'use strict';
 
+    var CDN_FILTERS_URL = 'https://cdn.jsdelivr.net/gh/StinKaniff/lampa@latest/streaming/streaming-filters.js';
+    var currentScript = (typeof document !== 'undefined' && document.currentScript && document.currentScript.src) ? document.currentScript.src : '';
+    var FILTERS_SCRIPT_URL = (currentScript && currentScript.indexOf('cdn.jsdelivr.net/gh/StinKaniff/lampa') !== -1 && currentScript.indexOf('streaming-menu-v2') !== -1)
+        ? currentScript.replace(/streaming-menu-v2\.js(\?.*)?$/i, 'streaming-filters.js$1')
+        : CDN_FILTERS_URL;
+
     var ORIGIN_COUNTRIES_NO_ASIA = 'US|GB|CA|AU|DE|FR|IT|ES|PL|UA|NL|SE|NO|BR|MX|AR|BE|CH|AT|PT|IE|NZ|ZA|RU|TR|FI|DK|CZ|RO|HU|GR';
     var STORAGE_WATCH_REGION = 'streaming_watch_region';
     var STORAGE_ENABLED_SERVICES = 'streaming_enabled_services';
     var STORAGE_FILTERS_ENABLED = 'streaming_filters_enabled';
-    var FILTERS_SCRIPT_URL = 'https://cdn.jsdelivr.net/gh/StinKaniff/lampa@latest/streaming/streaming-filters.js';
     var MAX_CATEGORIES = 25;
     var ORIGIN_COUNTRY_EU = 'DE|FR|IT|ES|PL|NL|SE|NO|RU|TR|CZ|HU|RO|BE|AT|CH|PT|IE|FI|DK|GR';
-    var ICON_CLEAN_SVG = '<svg width="22" height="22" viewBox="0 0 128 128" fill="none" style="opacity:0.5"><path fill="currentColor" d="M42.205 39.642a2.565 2.565 0 1 0-5.13-.002 2.565 2.565 0 0 0 5.13.002Zm7.692 0a10.256 10.256 0 1 1-20.512 0 10.256 10.256 0 0 1 20.512 0ZM53.744 23.487v-.512a5.128 5.128 0 1 1 10.256 0v.512a5.128 5.128 0 1 1-10.256 0Z"/><path fill="currentColor" d="M107.353 15.21a3.847 3.847 0 0 1 5.602 5.272L74.308 61.544c1.215 1.265 2.269 2.549 2.948 4.125l.189.472.004.01c.879 2.405.686 4.614.475 7.04l-.035.405c-1.18 13.716-5.877 23.572-10.36 30.036-2.236 3.223-4.41 5.592-6.054 7.177a33.805 33.805 0 0 1-2.016 1.801c-.25.205-.455.364-.605.478l-.183.137-.012.009-.047.034-.012.009-.01.006-.008.006a3.866 3.866 0 0 1-3.153.599c-10.777-2.67-20.583-7.436-28.002-16.178a45.968 45.968 0 0 1-3.255-4.334c.816.007 1.734-.014 2.738-.082a37.75 37.75 0 0 0 2.253-.221c5.351-.687 12.44-2.748 19.49-8.19a3.846 3.846 0 0 0-4.701-6.089c-5.772 4.456-11.504 6.102-15.768 6.648-2.137.275-3.114.321-5.106.205-1.993-.116-3.176-.164-3.176-.164-3.086-7.072-5.094-15.605-5.89-25.862a3.846 3.846 0 0 1 5.251-3.874c9.343 3.704 18.513 4.48 30.262-.03l.133-.05c2.8-1.074 5.13-1.967 7.037-2.517 1.929-.556 3.949-.928 5.993-.507l.017.004c1.965.414 3.554 1.412 5.006 2.59.352.286.715.599 1.09.935l38.552-40.961Z"/></svg>';
-
     function getWatchRegion() {
         var s = Lampa.Storage.get(STORAGE_WATCH_REGION);
         return (s === 'UA' || s === 'US' || s === 'EU') ? s : 'UA';
@@ -448,52 +451,11 @@
         return list;
     }
 
-    function buildMinimalViewHeader(object, opts) {
-        opts = opts || {};
-        var onReturnFocus = opts.onReturnFocus;
-        var header = document.createElement('div');
-        header.className = 'streaming-sqr-header streaming-sqr-header--view';
-        header.style.cssText = 'display:flex;align-items:center;gap:16px;padding:10px 16px;flex-wrap:nowrap;width:100%;box-sizing:border-box;';
-        var searchLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_search')) || 'Search';
-        var searchQuery = (object.searchQuery && object.searchQuery.trim) ? object.searchQuery.trim() : '';
-        var searchBtnText = searchQuery ? searchLabelBase + ': ' + searchQuery : searchLabelBase;
-        var searchBtn = document.createElement('div');
-        searchBtn.className = 'simple-button simple-button--invisible selector';
-        searchBtn.setAttribute('data-action', 'streaming_view_search');
-        searchBtn.setAttribute('tabindex', '0');
-        searchBtn.setAttribute('role', 'button');
-        searchBtn.innerHTML = '<svg width="23" height="22" viewBox="0 0 23 22" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="9.9964" cy="9.63489" r="8.43556" stroke="currentColor" stroke-width="2.4"></circle><path d="M20.7768 20.4334L18.2135 17.8701" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg><span>' + searchBtnText + '</span>';
-        $(searchBtn).on('hover:enter', function () {
-            Lampa.Input.edit({ free: true, nosave: true, nomic: true, value: object.searchQuery || '' }, function (val) {
-                if (val != null) {
-                    var next = Object.assign({}, object, { searchQuery: (val && val.trim()) ? val.trim() : '', page: 1 });
-                    Lampa.Activity.replace(next);
-                }
-            });
-        });
-        header.appendChild(searchBtn);
-        var rightSpacer = document.createElement('div');
-        rightSpacer.style.cssText = 'flex:1 1 0;min-width:12px;';
-        header.appendChild(rightSpacer);
-        var resetBtn = document.createElement('div');
-        resetBtn.className = 'simple-button simple-button--invisible selector';
-        resetBtn.setAttribute('tabindex', '0');
-        resetBtn.setAttribute('role', 'button');
-        resetBtn.innerHTML = ICON_CLEAN_SVG;
-        resetBtn.title = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset';
-        $(resetBtn).on('hover:enter', function () {
-            var next = Object.assign({}, object, { searchQuery: '', tagKeywordId: null, genreId: null, originCountry: null, page: 1 });
-            Lampa.Activity.replace(next);
-        });
-        header.appendChild(resetBtn);
-        return header;
-    }
-
     function buildStreamingViewHeader(object, opts) {
         if (isFiltersEnabled() && window.StreamingMenu && typeof window.StreamingMenu.buildViewHeaderWithFilters === 'function') {
             return window.StreamingMenu.buildViewHeaderWithFilters(object, opts);
         }
-        return buildMinimalViewHeader(object, opts);
+        return null;
     }
 
     function StreamingMain(object) {
@@ -647,21 +609,23 @@
         function prependViewHeader(_this) {
             var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
             if (!root) return;
+            streamingRootEl = root;
             var headerEl = buildStreamingViewHeader(object, {
                 onReturnFocus: function () {
                     applyStreamingViewCollection(false);
                     scheduleCollectionApply();
                 }
             });
-            if (root.prepend) {
-                root.prepend(headerEl);
-            } else if (root.insertBefore && root.firstChild) {
-                root.insertBefore(headerEl, root.firstChild);
-            } else {
-                root.insertBefore(headerEl, null);
+            if (headerEl) {
+                if (root.prepend) {
+                    root.prepend(headerEl);
+                } else if (root.insertBefore && root.firstChild) {
+                    root.insertBefore(headerEl, root.firstChild);
+                } else {
+                    root.insertBefore(headerEl, null);
+                }
+                streamingHeaderEl = headerEl;
             }
-            streamingHeaderEl = headerEl;
-            streamingRootEl = root;
         }
         function applyStreamingViewCollection(focusOnHeader) {
             if (!streamingHeaderEl || !streamingRootEl || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
