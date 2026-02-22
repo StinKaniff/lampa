@@ -1,17 +1,9 @@
 (function () {
     'use strict';
 
-    var CDN_FILTERS_URL = 'https://cdn.jsdelivr.net/gh/StinKaniff/lampa@latest/streaming/streaming-filters.js';
-    var currentScript = (typeof document !== 'undefined' && document.currentScript && document.currentScript.src) ? document.currentScript.src : '';
-    var FILTERS_SCRIPT_URL = (currentScript && currentScript.indexOf('cdn.jsdelivr.net/gh/StinKaniff/lampa') !== -1 && currentScript.indexOf('streaming-menu-v2') !== -1)
-        ? currentScript.replace(/streaming-menu-v2\.js(\?.*)?$/i, 'streaming-filters.js$1')
-        : CDN_FILTERS_URL;
-
     var ORIGIN_COUNTRIES_NO_ASIA = 'US|GB|CA|AU|DE|FR|IT|ES|PL|UA|NL|SE|NO|BR|MX|AR|BE|CH|AT|PT|IE|NZ|ZA|RU|TR|FI|DK|CZ|RO|HU|GR';
     var STORAGE_WATCH_REGION = 'streaming_watch_region';
     var STORAGE_ENABLED_SERVICES = 'streaming_enabled_services';
-    var STORAGE_FILTERS_ENABLED = 'streaming_filters_enabled';
-    var MAX_CATEGORIES = 25;
     var ORIGIN_COUNTRY_EU = 'DE|FR|IT|ES|PL|NL|SE|NO|RU|TR|CZ|HU|RO|BE|AT|CH|PT|IE|FI|DK|GR';
     function getWatchRegion() {
         var s = Lampa.Storage.get(STORAGE_WATCH_REGION);
@@ -71,7 +63,12 @@
         { id: 11, titleKey: 'streaming_action_thrillers', section: 'genre', genres: '28,53,80' },
         { id: 12, titleKey: 'streaming_comedy', section: 'genre', genres: '35' },
         { id: 13, titleKey: 'streaming_animation', section: 'genre', genres: '16' },
-        { id: 14, titleKey: 'streaming_nonfiction', section: 'genre', genres: '36,99' }
+        { id: 14, titleKey: 'streaming_nonfiction', section: 'genre', genres: '36,99' },
+        { id: 15, titleKey: 'streaming_drama', section: 'genre', genres: '18' },
+        { id: 16, titleKey: 'streaming_horror', section: 'genre', genres: '27' },
+        { id: 17, titleKey: 'streaming_romance', section: 'genre', genres: '10749' },
+        { id: 18, titleKey: 'streaming_mystery', section: 'genre', genres: '9648' },
+        { id: 19, titleKey: 'streaming_discovery', section: 'genre', genres: '99' }
     ];
     var CATEGORY_TEMPLATE_BRAND = [
         { id: 1, titleKey: 'streaming_trending', section: 'trending' },
@@ -240,6 +237,15 @@
                 { titleKey: 'streaming_wildlife', url: 'discover/tv', params: { with_networks: '1043', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
             ]
         },
+        discovery: {
+            title: 'Discovery',
+            base: { tv: { with_networks: '64', with_genres: '99' }, movie: {} },
+            mergeTvMovieTrending: false,
+            exclusives: [
+                { titleKey: 'streaming_discovery_docs', url: 'discover/tv', params: { with_networks: '64', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
+                { titleKey: 'streaming_discovery_science', url: 'discover/tv', params: { with_networks: '64', with_genres: '99', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
+            ]
+        },
         marvel: {
             title: 'MARVEL',
             categoryTemplate: 'brand',
@@ -296,96 +302,16 @@
         streaming_paramount_blockbusters: { en: 'Paramount blockbusters', uk: 'Блокбастери Paramount' },
         streaming_space: { en: 'Space', uk: 'Космос' },
         streaming_wildlife: { en: 'Wildlife', uk: 'Дика природа' },
+        streaming_discovery_docs: { en: 'Documentaries', uk: 'Документальні' },
+        streaming_discovery_science: { en: 'Science & Nature', uk: 'Наука та природа' },
         streaming_enabled_services_label: { en: 'Streamings', uk: 'Стримінги' },
-        streaming_filters_label: { en: 'Filters (genre, country, tag)', uk: 'Фільтри (жанр, країна, тег)' },
-        streaming_on: { en: 'On', uk: 'Увімкнено' },
-        streaming_off: { en: 'Off', uk: 'Вимкнено' },
         streaming_more_label: { en: 'See all', uk: 'Дивитись усі' },
-        streaming_search: { en: 'Search', uk: 'Пошук' },
+        streaming_drama: { en: 'Drama', uk: 'Драма' },
+        streaming_horror: { en: 'Horror', uk: 'Жахи' },
+        streaming_romance: { en: 'Romance', uk: 'Мелодрама' },
+        streaming_mystery: { en: 'Mystery & Detective', uk: 'Детектив та Таємниця' },
+        streaming_discovery: { en: 'Nature, Space & Wildlife', uk: 'Природа, космос та тварини' },
         streaming_search_results: { en: 'Search results', uk: 'Результати пошуку' },
-        streaming_tag_label: { en: 'Tag', uk: 'Тег' },
-        streaming_reset_filters: { en: 'Reset', uk: 'Скинути' },
-        streaming_clear_filters: { en: 'Clear', uk: 'Очистити' },
-        streaming_tag_cat_fantasy_future: { en: 'Sci‑Fi & Future', uk: 'Фантастика та Майбутнє' },
-        streaming_tag_cat_monsters: { en: 'Monsters & Creatures', uk: 'Монстри та Істоти' },
-        streaming_tag_cat_narrative: { en: 'Narrative & Plot', uk: 'Наратив та Сюжет' },
-        streaming_tag_cat_space: { en: 'Space', uk: 'Космос' },
-        streaming_tag_cat_psychology: { en: 'Psychology & Archetypes', uk: 'Психологія та Архетипи' },
-        streaming_tag_cat_crime: { en: 'Crime & Justice', uk: 'Кримінал та Правосуддя' },
-        streaming_tag_cat_action: { en: 'Action & Spectacle', uk: 'Екшен та Видовищність' },
-        streaming_tag_cat_war: { en: 'War & Army', uk: 'Війна та Армія' },
-        streaming_tag_cat_spy: { en: 'Spy', uk: 'Шпигунство' },
-        streaming_tag_cat_apocalypse: { en: 'Post‑apocalypse & Global threats', uk: 'Постапокаліпсис та Глобальні загрози' },
-        streaming_tag_future: { en: 'Future', uk: 'Майбутнє' },
-        streaming_tag_time_travel: { en: 'Time travel', uk: 'Подорожі в часі' },
-        streaming_tag_dystopia: { en: 'Dystopia', uk: 'Антиутопія' },
-        streaming_tag_apocalypse: { en: 'Apocalypse', uk: 'Апокаліпсис' },
-        streaming_tag_zombie_apocalypse: { en: 'Zombie apocalypse', uk: 'Зомбі-апокаліпсис' },
-        streaming_tag_space_war: { en: 'Space war', uk: 'Космічна війна' },
-        streaming_tag_alien_world: { en: 'Alien world', uk: 'Інопланетний світ' },
-        streaming_tag_superheroes: { en: 'Superheroes', uk: 'Супергерої' },
-        streaming_tag_monsters: { en: 'Monsters', uk: 'Монстри' },
-        streaming_tag_witches: { en: 'Witches', uk: 'Відьми' },
-        streaming_tag_zombie: { en: 'Zombie', uk: 'Зомбі' },
-        streaming_tag_mutations: { en: 'Mutations', uk: 'Мутації' },
-        streaming_tag_dinosaurs: { en: 'Dinosaurs', uk: 'Динозаври' },
-        streaming_tag_dragons: { en: 'Dragons', uk: 'Дракони' },
-        streaming_tag_space_adventure: { en: 'Space adventure', uk: 'Космічна пригода' },
-        streaming_tag_space_opera: { en: 'Space opera', uk: 'Космічна опера' },
-        streaming_tag_journey: { en: 'Journey', uk: 'Подорож' },
-        streaming_tag_vengeance: { en: 'Vengeance', uk: 'Помста' },
-        streaming_tag_battle: { en: 'Battle', uk: 'Битва' },
-        streaming_tag_destruction: { en: 'Destruction', uk: 'Руйнування' },
-        streaming_tag_violence: { en: 'Violence', uk: 'Жорстокість' },
-        streaming_tag_soldier: { en: 'Soldier', uk: 'Солдат' },
-        streaming_tag_marines: { en: 'Marines', uk: 'Морська піхота' },
-        streaming_tag_terrorism: { en: 'Terrorism', uk: 'Тероризм' },
-        streaming_tag_nuclear_threat: { en: 'Nuclear threat', uk: 'Ядерна загроза' },
-        streaming_tag_explosion: { en: 'Explosion', uk: 'Вибух' },
-        streaming_tag_racing: { en: 'Racing', uk: 'Перегони' },
-        streaming_tag_spy: { en: 'Spy', uk: 'Шпигунство' },
-        streaming_tag_secret_agent: { en: 'Secret agent', uk: 'Таємний агент' },
-        streaming_tag_mi6: { en: 'MI6', uk: 'MI6' },
-        streaming_tag_british_intelligence: { en: 'British intelligence', uk: 'Британська розвідка' },
-        streaming_tag_mystery: { en: 'Mystery', uk: 'Таємниця' },
-        streaming_tag_heist: { en: 'Heist', uk: 'Професійний крадій' },
-        streaming_tag_drug_addiction: { en: 'Drug addiction', uk: 'Наркозалежність' },
-        streaming_tag_crime_fighter: { en: 'Crime fighter', uk: 'Борець зі злочинністю' },
-        streaming_tag_femme_fatale: { en: 'Femme fatale', uk: 'Лиходійка' },
-        streaming_tag_tragic_hero: { en: 'Tragic hero', uk: 'Трагічний герой' },
-        streaming_tag_antihero: { en: 'Antihero', uk: 'Антигерой' },
-        streaming_tag_criminal_investigation: { en: 'Criminal investigation', uk: 'Кримінальне розслідування' },
-        streaming_tag_lawyer: { en: 'Lawyer', uk: 'Адвокат' },
-        streaming_tag_based_on_novel: { en: 'Based on book', uk: 'Екранізація книги' },
-        streaming_tag_sequel: { en: 'Sequel', uk: 'Сиквел' },
-        streaming_tag_multiple_pov: { en: 'Multiple points of view', uk: 'Кілька точок зору' },
-        streaming_tag_culture_clash: { en: 'Culture clash', uk: 'Зіткнення культур' },
-        streaming_genre_label: { en: 'Genre', uk: 'Жанр' },
-        streaming_genre_action: { en: 'Action', uk: 'Бойовик' },
-        streaming_genre_adventure: { en: 'Adventure', uk: 'Пригоди' },
-        streaming_genre_animation: { en: 'Animation', uk: 'Мультфільм' },
-        streaming_genre_comedy: { en: 'Comedy', uk: 'Комедія' },
-        streaming_genre_crime: { en: 'Crime', uk: 'Кримінал' },
-        streaming_genre_documentary: { en: 'Documentary', uk: 'Документальний' },
-        streaming_genre_drama: { en: 'Drama', uk: 'Драма' },
-        streaming_genre_family: { en: 'Family', uk: 'Сімейний' },
-        streaming_genre_fantasy: { en: 'Fantasy', uk: 'Фентезі' },
-        streaming_genre_history: { en: 'History', uk: 'Історичний' },
-        streaming_genre_horror: { en: 'Horror', uk: 'Жахи' },
-        streaming_genre_music: { en: 'Music', uk: 'Музика' },
-        streaming_genre_mystery: { en: 'Mystery', uk: 'Детектив' },
-        streaming_genre_romance: { en: 'Romance', uk: 'Мелодрама' },
-        streaming_genre_scifi: { en: 'Science Fiction', uk: 'Фантастика' },
-        streaming_genre_tv_movie: { en: 'TV Movie', uk: 'Телефільм' },
-        streaming_genre_thriller: { en: 'Thriller', uk: 'Трилер' },
-        streaming_genre_war: { en: 'War', uk: 'Військовий' },
-        streaming_genre_western: { en: 'Western', uk: 'Вестерн' },
-        streaming_country_label: { en: 'Country', uk: 'Країна' },
-        streaming_country_UA: { en: 'Ukraine', uk: 'Україна' },
-        streaming_country_US: { en: 'United States', uk: 'США' },
-        streaming_country_GB: { en: 'United Kingdom', uk: 'Велика Британія' },
-        streaming_country_EU: { en: 'Europe', uk: 'Європа' },
-        streaming_country_NZ: { en: 'New Zealand', uk: 'Нова Зеландія' },
     });
 
     var WATCH_REGIONS = [
@@ -451,10 +377,7 @@
         return list;
     }
 
-    function buildStreamingViewHeader(object, opts) {
-        if (isFiltersEnabled() && window.StreamingMenu && typeof window.StreamingMenu.buildViewHeaderWithFilters === 'function') {
-            return window.StreamingMenu.buildViewHeaderWithFilters(object, opts);
-        }
+    function buildStreamingViewHeader() {
         return null;
     }
 
@@ -734,9 +657,10 @@
     var ICON_AMAZON = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M456 370c0 15-8 43-26 58-4 3-8 2-6-2 5-13 17-43 12-50-4-6-21-5-35-4l-17 2c-4 0-4-3 0-6 5-4 11-7 17-8 23-7 50-3 53 1 1 1 2 3 2 9Zm-38 26-17 11a294 294 0 0 1-343-37c-4-3-1-9 4-6a397 397 0 0 0 339 26l10-4c7-3 14 5 7 10ZM294 176c0-21 1-33-6-44-6-9-17-14-31-13-16 1-33 11-38 31-1 4-3 8-9 9l-48-6c-4-1-9-3-7-10 10-55 57-75 102-77h10c25 0 56 7 76 25 24 23 22 53 22 87v78c0 24 9 34 19 46 2 5 3 10-1 13l-38 34c-4 2-10 2-13 0-15-12-19-20-28-33-17 18-31 27-47 33-12 3-24 4-36 4-42 0-75-26-75-78 0-41 22-69 54-82s79-17 94-17m-9 104c10-18 9-32 9-64-13 0-26 1-37 3-21 6-38 20-38 48 0 21 12 36 31 36l7-1c13-3 21-10 28-22Z"/></svg>';
     var ICON_PARAMOUNT = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M328 412c1-1 3-5 0-12l-9-24c-1-3 2-5 3-3 0 0 17 19 21 28l9 13 45 1-5-6c-32-40-53-62-53-62-6-7-9-9-14-11l-3-1v6l-1 1-47-84c-2-4-5-7-9-10l-5-3-22 52c3 0 6 4 4 7l-20 48h19c7 0 14 2 21 4l5 3s-15 31-15 47l1 9h35l-1-10s21 5 41 7ZM256 97A200 200 0 0 0 95 415c8-3 13-9 16-13l38-47 3-3 5-2 62-78 8-7 19-25 1-2 8-6a6 6 0 0 1 7 0l10 7c5 4 9 8 12 14l38 68 3 3c8 4 13 4 23 15 4 5 25 28 53 63 4 6 9 10 16 13A200 200 0 0 0 256 96ZM110 308l-13-5-8 11v-13l-13-4 13-5v-13l8 11 13-4-8 11 8 11Zm-3 44-4 13-5-13H85l11-8-4-13 11 8 11-8-5 13 11 8h-13Zm2-103 5 13-11-8-11 8 4-13-11-8h13l5-13 4 13h13l-11 8Zm22-29-8-11-13 4 8-11-8-11 13 4 8-11v14l13 4-13 4v14Zm34-48-4 13-4-13h-14l11-8-4-13 11 8 11-8-4 13 11 8h-14Zm43-22-8 11v-13l-13-5 13-4v-14l8 11 13-4-8 11 8 11-13-4Zm55-12 4 13-11-8-11 8 4-13-11-8h14l4-13 4 13h14l-11 8Zm49 10v13l-8-11-13 4 8-11-8-11 13 4 8-11v14l13 4-13 5Zm90 138 13 4 8-11v13l13 5-13 4v13l-8-11-13 5 8-11-8-11Zm-51-101-4-13h-14l11-8-4-13 11 8 11-8-4 13 11 8h-14l-4 13Zm30 35v-14l-13-4 13-4v-14l8 11 13-4-8 11 8 11-13-4-8 11Zm24 21 4-13 5 13h13l-11 8 4 13-11-8-11 8 5-13-11-8h13Zm9 111-5 13-4-13h-13l11-8-5-13 11 8 11-8-4 13 11 8h-13Zm-202-10 13-26-1-2-11 12c-5 5-14 20-16 23l-14 23a2 2 0 0 1 2 2l-12 21c-3 5 2 9 3 7 19-31 30-28 30-28l7-15-1-2c-2-1-5-5 0-15Z"/></svg>';
     var ICON_ORIGIN = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path stroke="currentColor" stroke-width="42.6667" stroke-linecap="round" stroke-linejoin="round" d="M149.333 64H362.667V448H149.333V64Z"/></svg>';
+    var ICON_DISCOVERY = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M128.79 442.996h-11.561v-49.061h11.561v49.061ZM174.265 398.9l-4.448 7.822c-4.755-4.025-20.552-7.822-20.552.458 0 9.166 26.227 3.99 26.227 22.09 0 15.966-22.776 19.478-39.283 7.513l5.157-7.513c4.678 4.674 23.696 10.735 23.696.689 0-9.741-26.437-4.276-26.437-22.086 0-15.339 21.031-19.059 35.64-8.973ZM218.666 409.06c-7.745-10.062-26.763-8.281-26.763 9.893 0 17.716 20.629 19.212 27.147 9.491 1.457 1.456 5.358 5.262 6.825 6.73-15.299 18.174-45.322 7.822-45.322-16.221 0-25.018 30.023-33.933 45.016-17.485l-6.903 7.592ZM255.284 434.426c-8.703 0-15.203-6.46-15.203-15.759 0-9.952 7.008-15.762 15.203-15.762s14.839 7.419 14.839 15.762c0 9.299-6.644 15.759-14.839 15.759Zm-.364-41.297c-14.516 0-26.284 11.463-26.284 25.605 0 14.138 11.768 25.601 26.284 25.601 14.516 0 26.284-11.463 26.284-25.601 0-14.142-11.768-25.605-26.284-25.605ZM281.607 393.935H293.8l13.171 36.204 13.286-36.204h11.846l-20.013 49.75h-10.238l-20.245-49.75ZM344.354 414.122c2.686-15.798 23.428-15.837 25.249 0h-25.249Zm-11.213 4.545c0 26.475 33.302 33.377 45.455 16.507l-6.691-5.869c-5.117 7.478-24.329 10.583-27.551-6.691h36.294c2.819-39.743-47.507-37.21-47.507-3.947ZM389.14 393.935h11.463v8.34s5.446-6.883 15.015-7.784l3.813 9.361c-4.925 0-18.828 5.208-18.828 19.126v20.018H389.14v-49.061ZM423.112 393.935h12.004l11.694 36.137 12.615-36.137h11.616s-20.186 51.649-24.004 61.226c-2.991 7.54-7.235 10.762-16.874 10.762h-7.051v-9.357h8.511c5.141 0 9.588-13.57 9.588-13.57l-18.099-49.061ZM77.89 432.449H63.516v-44.246h14.372c12.136 0 20.878 8.896 20.878 22.928 0 13.229-10.238 21.318-20.878 21.318Zm-2.992-54.754H51.682v65.301H77.89c11.906 0 32.898-9.662 32.898-31.865 0-23.119-16.966-33.436-35.889-33.436ZM476.742 125.214C453.36 83.85 404.35 46.076 341.848 46.076H211.509c-.333 0-.506.423-.506.423v49.848c0 .376.217.72.558.885 15.493 7.443 29.78 17.54 42.294 30.053a155.796 155.796 0 0 1 15.163 17.598c.571.772 1.788.38 1.788-.579v-43.49s.113-.329.33-.329h65.317c12.591 0 40.017 4.945 65.2 24.729 26.388 20.734 39.566 68.346 27.425 112.411-12.141 44.065-54.855 68.795-94.422 68.795h-51.873a.976.976 0 0 0-.87.531c-7.22 13.958-16.627 26.875-28.058 38.307a156.801 156.801 0 0 1-13.317 11.871c-.738.587-.345 1.765.598 1.769 43.711.036 92.475.13 110.156.13 44.515 0 97.574-25.629 125.45-75.54 27.876-49.91 23.381-116.907 0-158.274Z"/></svg>';
     var ICON_MARVEL = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M243.2 200.597h-.256V256.5a16.59 16.59 0 0 0 7.347-1.774 27.72 27.72 0 0 0 10.589-11.271 27.873 27.873 0 0 0 2.928-15.215c0-26.923-18.253-27.669-20.608-27.643ZM0 153v207h512V153H0Zm433.28 119.237h-28.006v39.857h28.006v31.243H374.4V185.811l-24.858 157.526h-36.377l-18.586-111.78a50.61 50.61 0 0 1-3.551 24.459 50.385 50.385 0 0 1-14.702 19.821l19.687 67.397h-30.72l-15.002-57.523-7.27 1.055v56.417h-59.162l-3.635-26.743h-24.448l-3.635 26.743H91.878v-83.597l-14.003 83.751H61.261l-14.234-83.751v83.751H15.795V169.56h39.68l13.927 89.794 14.31-89.794h39.654v159.814l23.86-159.84h41.446l23.04 154.286V169.534h31.693a50.008 50.008 0 0 1 26.605 7.641 50.329 50.329 0 0 1 18.528 20.645l-3.533-28.286h31.641l14.285 105.84L345.6 169.56h87.757v31.68h-28.083v39.266h28.006v31.731Zm62.976 71.074h-57.574V169.534h31.001v142.535h26.573v31.242Zm-336.794-54.257h17.485l-8.909-74.314-8.576 74.314Z"/></svg>';
     var ICON_DC = '<svg xmlns="http://www.w3.org/2000/svg"' + ICON_SIZE + ' fill="none" viewBox="0 0 512 512"><path fill="currentColor" d="M131.608 197.095h39.49c11.019 0 19.947 8.928 19.947 19.947v90.823c0 11-8.928 19.947-19.947 19.947h-24.181V209.708a2.946 2.946 0 0 0-1.21-2.365l-14.099-10.248ZM256 459.482a203.142 203.142 0 0 1-158.748-76.175.847.847 0 0 1-.09-.883.848.848 0 0 1 .75-.474h108.826a4.76 4.76 0 0 0 2.805-.917l41.617-30.213a2.94 2.94 0 0 0 1.173-2.347V175.627a2.931 2.931 0 0 0-1.191-2.365l-41.599-30.195a4.76 4.76 0 0 0-2.805-.917H88.91a.847.847 0 0 1-.719-.453.843.843 0 0 1 .04-.849A203.32 203.32 0 0 1 256 52.5c69.63 0 131.083 34.962 167.768 88.312a.836.836 0 0 1 .036.856.853.853 0 0 1-.305.323.849.849 0 0 1-.427.122h-29.279a2.49 2.49 0 0 0-2.255 1.449l-6.471 13.878-19.837-14.41a4.763 4.763 0 0 0-2.805-.917H315.62a4.771 4.771 0 0 0-2.823.917l-41.58 30.232a2.932 2.932 0 0 0-1.192 2.365v172.846c0 .917.44 1.797 1.192 2.347l41.616 30.213a4.765 4.765 0 0 0 2.805.917h98.469c.696 0 1.1.825.66 1.357a203.15 203.15 0 0 1-70.698 56.196A203.113 203.113 0 0 1 256 459.482ZM65.37 188.167l19.03 13.841a2.956 2.956 0 0 1 1.247 2.42v160.05c0 .844-1.1 1.155-1.54.459A202.586 202.586 0 0 1 52.518 256c0-23.632 4.034-46.31 11.44-67.412a.923.923 0 0 1 .595-.577.914.914 0 0 1 .817.137v.019Zm250.617 8.946h59.125v32.56c0 .844.696 1.54 1.54 1.54h49.518a1.83 1.83 0 0 0 1.76-1.521l9.808-61.857a.844.844 0 0 1 1.577-.238 202.586 202.586 0 0 1 20.167 88.421 202.576 202.576 0 0 1-25.484 98.67c-.403.734-1.54.44-1.54-.421v-56.54a1.539 1.539 0 0 0-1.54-1.54h-54.266a1.539 1.539 0 0 0-1.54 1.54v30.103H351.26a19.987 19.987 0 0 1-14.106-5.846 19.989 19.989 0 0 1-5.859-14.101v-98.175a2.928 2.928 0 0 0-1.192-2.365l-14.116-10.23ZM256 36C134.505 36 36 134.505 36 256s98.505 220 220 220 220-98.505 220-220S377.495 36 256 36Z"/></svg>';
-    var SERVICE_ICONS = { netflix: ICON_NETFLIX, apple: ICON_APPLE, hbo: ICON_HBO, amazon: ICON_AMAZON, disney: ICON_DISNEY, paramount: ICON_PARAMOUNT, origin: ICON_ORIGIN, marvel: ICON_MARVEL, dc: ICON_DC };
+    var SERVICE_ICONS = { netflix: ICON_NETFLIX, apple: ICON_APPLE, hbo: ICON_HBO, amazon: ICON_AMAZON, disney: ICON_DISNEY, paramount: ICON_PARAMOUNT, origin: ICON_ORIGIN, discovery: ICON_DISCOVERY, marvel: ICON_MARVEL, dc: ICON_DC };
 
     function registerSqrSettingsApi() {
         if (!Lampa.SettingsApi || typeof Lampa.SettingsApi.addComponent !== 'function') return;
@@ -759,18 +683,6 @@
             }
         });
         var streamingsLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_enabled_services_label')) || 'Стримінги';
-        var filtersLabel = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_filters_label')) || 'Фільтри (жанр, країна, тег)';
-        Lampa.SettingsApi.addParam({
-            component: 'streaming_sqr_settings',
-            param: { name: STORAGE_FILTERS_ENABLED, type: 'select', values: { '0': (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_off')) || 'Вимкнено', '1': (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_on')) || 'Увімкнено' }, default: '0' },
-            field: { name: filtersLabel },
-            onChange: function (value) {
-                var on = value === '1' || value === true;
-                Lampa.Storage.set(STORAGE_FILTERS_ENABLED, on ? '1' : '0');
-                if (Lampa.Settings && Lampa.Settings.update) Lampa.Settings.update();
-                if (on && Lampa.Utils && Lampa.Utils.putScriptAsync) Lampa.Utils.putScriptAsync(FILTERS_SCRIPT_URL);
-            }
-        });
         Lampa.SettingsApi.addParam({
             component: 'streaming_sqr_settings',
             param: { name: STORAGE_ENABLED_SERVICES, type: 'button', default: [] },
@@ -853,19 +765,11 @@
         if (serviceIds.length) addNext();
     }
 
-    function isFiltersEnabled() {
-        var v = Lampa.Storage.get(STORAGE_FILTERS_ENABLED);
-        return v === true || v === '1';
-    }
-
     function init() {
         Lampa.Component.add('streaming_main', StreamingMain);
         Lampa.Component.add('streaming_view', StreamingView);
         addStreamingMenuItems();
         registerSqrSettingsApi();
-        if (isFiltersEnabled() && Lampa.Utils && Lampa.Utils.putScriptAsync) {
-            Lampa.Utils.putScriptAsync(FILTERS_SCRIPT_URL);
-        }
     }
 
     if (typeof Lampa === 'undefined') {
