@@ -35,7 +35,11 @@
 
     function buildDiscoverUrl(url, params, page) {
         var p = Object.assign({}, params);
-        if (url.indexOf('discover/') !== -1 && !p.with_origin_country) p.with_origin_country = ORIGIN_COUNTRIES_NO_ASIA;
+        if (url.indexOf('discover/') !== -1) {
+            if (!p.with_origin_country) p.with_origin_country = ORIGIN_COUNTRIES_NO_ASIA;
+            // Запити з watch_providers мають використовувати поточний регіон перегляду — щоб контент відповідав обраному стримінгу (напр. Netflix для UA, а не EU)
+            if (p.with_watch_providers) p.watch_region = p.watch_region || getWatchRegion();
+        }
         var arr = ['api_key=' + Lampa.TMDB.key(), 'language=' + (Lampa.Storage.get('language') || 'uk')];
         if (page != null) arr.push('page=' + page);
         for (var key in p) arr.push(key + '=' + encodeURIComponent(p[key]));
@@ -75,6 +79,13 @@
         { id: 2, titleKey: 'streaming_new_series', section: 'new_series' },
         { id: 3, titleKey: 'streaming_new_movies', section: 'new_movies' },
         { id: 5, titleKey: 'streaming_animation', section: 'exclusive' }
+    ];
+    // Тільки тренді + ексклюзиви, без нових серіалів/фільмів (для NatGeo, Discovery)
+    var CATEGORY_TEMPLATE_DOC = [
+        { id: 1, titleKey: 'streaming_trending', section: 'trending' },
+        { id: 5, titleKey: 'streaming_exclusive_1', section: 'exclusive' },
+        { id: 6, titleKey: 'streaming_exclusive_2', section: 'exclusive' },
+        { id: 7, titleKey: 'streaming_exclusive_3', section: 'exclusive' }
     ];
 
     function getBaseParams(service) {
@@ -230,6 +241,7 @@
         },
         origin: {
             title: 'NatGeo',
+            categoryTemplate: 'doc',
             base: { tv: { with_networks: '43|1043', with_genres: '99' }, movie: {} },
             mergeTvMovieTrending: false,
             exclusives: [
@@ -240,6 +252,7 @@
         },
         discovery: {
             title: 'Discovery',
+            categoryTemplate: 'doc',
             base: { tv: { with_networks: '64', with_genres: '99' }, movie: {} },
             mergeTvMovieTrending: false,
             exclusives: [
@@ -356,7 +369,7 @@
                 isSearch: true
             });
         }
-        var template = (service.categoryTemplate === 'brand') ? CATEGORY_TEMPLATE_BRAND : CATEGORY_TEMPLATE;
+        var template = service.categoryTemplate === 'doc' ? CATEGORY_TEMPLATE_DOC : (service.categoryTemplate === 'brand') ? CATEGORY_TEMPLATE_BRAND : CATEGORY_TEMPLATE;
         for (var i = 0; i < template.length; i++) {
             var cat = template[i];
             if (!cat) continue;
@@ -517,7 +530,10 @@
     function getViewParamsFromObject(obj) {
         if (!obj) return {};
         var params = Object.assign({}, obj.params || {});
-        if (obj.url && obj.url.indexOf('discover/') !== -1 && !params.with_origin_country) params.with_origin_country = ORIGIN_COUNTRIES_NO_ASIA;
+        if (obj.url && obj.url.indexOf('discover/') !== -1) {
+            if (!params.with_origin_country) params.with_origin_country = ORIGIN_COUNTRIES_NO_ASIA;
+            if (params.with_watch_providers) params.watch_region = params.watch_region || getWatchRegion();
+        }
         if (obj.tagKeywordId) params.with_keywords = obj.tagKeywordId;
         if (obj.genreId != null) params.with_genres = String(obj.genreId);
         if (obj.originCountry) params.with_origin_country = obj.originCountry === 'EU' ? ORIGIN_COUNTRY_EU : obj.originCountry;
