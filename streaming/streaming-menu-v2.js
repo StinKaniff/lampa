@@ -874,7 +874,128 @@
             comp.create = function () { this.empty(); return this.render(); };
             return comp;
         }
+        var mainHeaderEl = null;
+        var mainRootEl = null;
+        function prependMainHeader(_this) {
+            var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
+            if (!root) return;
+            var headerEl = buildStreamingHeader(object, serviceId, {});
+            if (root.prepend) {
+                root.prepend(headerEl);
+            } else if (root.insertBefore && root.firstChild) {
+                root.insertBefore(headerEl, root.firstChild);
+            } else {
+                root.insertBefore(headerEl, null);
+            }
+            mainHeaderEl = headerEl;
+            mainRootEl = root;
+        }
+        function applyMainCollection(focusHeader) {
+            if (!mainHeaderEl || !mainRootEl || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
+            var content = mainRootEl.children && mainRootEl.children.length > 1 ? mainRootEl.children[1] : mainRootEl;
+            Lampa.Controller.collectionSet(mainHeaderEl, content);
+            if (typeof Lampa.Controller.collectionFocus === 'function') {
+                Lampa.Controller.collectionFocus(focusHeader === true, mainHeaderEl, content);
+            }
+        }
+        function scheduleMainCollectionApply() {
+            setTimeout(applyMainCollection.bind(null, false), 0);
+            setTimeout(applyMainCollection.bind(null, true), 150);
+            setTimeout(applyMainCollection.bind(null, true), 450);
+        }
+        comp._viewHeaderEl = null;
+        comp._viewRootEl = null;
+        function applyViewOnMainCollection(focusHeader) {
+            var header = comp._viewHeaderEl;
+            var root = comp._viewRootEl;
+            if (!header || !root || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
+            var content = root.children && root.children.length > 1 ? root.children[1] : root;
+            Lampa.Controller.collectionSet(header, content);
+            if (typeof Lampa.Controller.collectionFocus === 'function') {
+                Lampa.Controller.collectionFocus(focusHeader === true, header, content);
+            }
+        }
+        function scheduleViewCollectionApply() {
+            setTimeout(applyViewOnMainCollection.bind(null, false), 0);
+            setTimeout(applyViewOnMainCollection.bind(null, true), 150);
+            setTimeout(applyViewOnMainCollection.bind(null, true), 450);
+        }
         comp.create = function () {
+            if (object.viewUrl) {
+                var viewObject = {
+                    url: object.viewUrl,
+                    params: object.viewParams || {},
+                    title: object.viewTitle || object.title,
+                    page: 1,
+                    tagKeywordId: object.tagKeywordId || null,
+                    genreId: object.genreId != null ? object.genreId : null,
+                    originCountry: object.originCountry || null,
+                    searchQuery: (object.searchQuery && object.searchQuery.trim) ? object.searchQuery.trim() : ''
+                };
+                var viewComp = new Lampa.InteractionCategory(viewObject);
+                var _this = this;
+                var viewNetwork = new Lampa.Reguest();
+                this.activity.loader(true);
+                var viewParams = getViewParamsFromObject(viewObject);
+                var viewFullUrl = buildDiscoverUrl(object.viewUrl, viewParams, 1);
+                viewNetwork.silent(viewFullUrl, function (json) {
+                    var results = (json && json.results) ? json.results : [];
+                    var totalPages = (json && json.total_pages != null) ? json.total_pages : 1;
+                    var totalResults = (json && json.total_results != null) ? json.total_results : 0;
+                    viewComp.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
+                    var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
+                    if (!root) { _this.activity.loader(false); return; }
+                    while (root.firstChild) root.removeChild(root.firstChild);
+                    var viewHeader = buildStreamingViewHeader(viewObject, {
+                        onReturnFocus: function () {
+                            applyViewOnMainCollection(true);
+                            scheduleViewCollectionApply();
+                        }
+                    });
+                    root.appendChild(viewHeader);
+                    root.appendChild(viewComp.render());
+                    comp._viewHeaderEl = viewHeader;
+                    comp._viewRootEl = root;
+                    _this.activity.loader(false);
+                    scheduleViewCollectionApply();
+                    comp.nextPageRequest = function (obj, resolve, reject) {
+                        var page = (obj && obj.page) ? obj.page : 1;
+                        viewNetwork.silent(buildDiscoverUrl(object.viewUrl, getViewParamsFromObject(viewObject), page), resolve, reject);
+                    };
+                    var origStart = comp.start;
+                    comp.start = function () {
+                        if (origStart) origStart.apply(this, arguments);
+                        scheduleViewCollectionApply();
+                    };
+                }, function () {
+                    viewComp.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
+                    var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
+                    if (!root) { _this.activity.loader(false); return; }
+                    while (root.firstChild) root.removeChild(root.firstChild);
+                    var viewHeader = buildStreamingViewHeader(viewObject, {
+                        onReturnFocus: function () {
+                            applyViewOnMainCollection(true);
+                            scheduleViewCollectionApply();
+                        }
+                    });
+                    root.appendChild(viewHeader);
+                    root.appendChild(viewComp.render());
+                    comp._viewHeaderEl = viewHeader;
+                    comp._viewRootEl = root;
+                    _this.activity.loader(false);
+                    scheduleViewCollectionApply();
+                    comp.nextPageRequest = function (obj, resolve, reject) {
+                        var page = (obj && obj.page) ? obj.page : 1;
+                        viewNetwork.silent(buildDiscoverUrl(object.viewUrl, getViewParamsFromObject(viewObject), page), resolve, reject);
+                    };
+                    var origStart = comp.start;
+                    comp.start = function () {
+                        if (origStart) origStart.apply(this, arguments);
+                        scheduleViewCollectionApply();
+                    };
+                });
+                return this.render();
+            }
             var mainObject = Object.assign({}, object, { tagKeywordId: null, searchQuery: '' });
             var categories = buildEffectiveCategories(serviceId, mainObject);
             if (!categories.length) {
@@ -965,7 +1086,9 @@
                 var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
+                    prependMainHeader(_this);
                     _this.activity.loader(false);
+                    scheduleMainCollectionApply();
                 } else {
                     _this.empty();
                 }
@@ -976,17 +1099,25 @@
                 staticDone = true;
                 tryBuild();
             };
+            var originalStart = comp.start;
+            if (originalStart) {
+                comp.start = function () {
+                    originalStart.apply(this, arguments);
+                    scheduleMainCollectionApply();
+                };
+            }
             return this.render();
         };
 
         comp.onMore = function (data) {
             if (!data.url) return;
             Lampa.Activity.push({
-                url: data.url,
-                params: data.params,
+                component: 'streaming_main',
+                service_id: object.service_id,
                 title: data.title,
-                component: 'streaming_view',
-                page: 1,
+                viewUrl: data.url,
+                viewParams: data.params,
+                viewTitle: data.title,
                 tagKeywordId: object.tagKeywordId || null,
                 genreId: object.genreId != null ? object.genreId : null,
                 originCountry: object.originCountry || null,
@@ -996,16 +1127,21 @@
         return comp;
     }
 
+    function getViewParamsFromObject(obj) {
+        if (!obj) return {};
+        var params = Object.assign({}, obj.params || {});
+        if (obj.url && obj.url.indexOf('discover/') !== -1 && !params.with_origin_country) params.with_origin_country = ORIGIN_COUNTRIES_NO_ASIA;
+        if (obj.tagKeywordId) params.with_keywords = obj.tagKeywordId;
+        if (obj.genreId != null) params.with_genres = String(obj.genreId);
+        if (obj.originCountry) params.with_origin_country = obj.originCountry === 'EU' ? ORIGIN_COUNTRY_EU : obj.originCountry;
+        return params;
+    }
+
     function StreamingView(object) {
         var comp = new Lampa.InteractionCategory(object);
         var network = new Lampa.Reguest();
         function getViewParams() {
-            var params = Object.assign({}, object.params || {});
-            if (object.url && object.url.indexOf('discover/') !== -1 && !params.with_origin_country) params.with_origin_country = ORIGIN_COUNTRIES_NO_ASIA;
-            if (object.tagKeywordId) params.with_keywords = object.tagKeywordId;
-            if (object.genreId != null) params.with_genres = String(object.genreId);
-            if (object.originCountry) params.with_origin_country = object.originCountry === 'EU' ? ORIGIN_COUNTRY_EU : object.originCountry;
-            return params;
+            return getViewParamsFromObject(object);
         }
         var streamingHeaderEl = null;
         var streamingRootEl = null;
