@@ -52,7 +52,7 @@
             },
             onBack: function () {
                 Lampa.Controller.toggle('content');
-                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 80);
+                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 200);
             }
         });
     }
@@ -96,7 +96,7 @@
             },
             onBack: function () {
                 Lampa.Controller.toggle('content');
-                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 80);
+                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 200);
             }
         });
     }
@@ -254,7 +254,7 @@
             },
             onBack: function () {
                 Lampa.Controller.toggle('content');
-                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 80);
+                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 200);
             }
         });
     }
@@ -1012,7 +1012,12 @@
         function prependViewHeader(_this) {
             var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
             if (!root) return;
-            var headerEl = buildStreamingViewHeader(object, { onReturnFocus: applyStreamingViewCollection });
+            var headerEl = buildStreamingViewHeader(object, {
+                onReturnFocus: function () {
+                    applyStreamingViewCollection(true);
+                    scheduleCollectionApply();
+                }
+            });
             if (root.prepend) {
                 root.prepend(headerEl);
             } else if (root.insertBefore && root.firstChild) {
@@ -1023,19 +1028,24 @@
             streamingHeaderEl = headerEl;
             streamingRootEl = root;
         }
-        function applyStreamingViewCollection() {
+        function applyStreamingViewCollection(focusHeader) {
             if (!streamingHeaderEl || !streamingRootEl || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
             var content = streamingRootEl.children && streamingRootEl.children.length > 1 ? streamingRootEl.children[1] : streamingRootEl;
             Lampa.Controller.collectionSet(streamingHeaderEl, content);
             if (typeof Lampa.Controller.collectionFocus === 'function') {
-                Lampa.Controller.collectionFocus(false, streamingHeaderEl, content);
+                Lampa.Controller.collectionFocus(focusHeader === true, streamingHeaderEl, content);
             }
+        }
+        function scheduleCollectionApply() {
+            setTimeout(applyStreamingViewCollection.bind(null, false), 0);
+            setTimeout(applyStreamingViewCollection.bind(null, true), 150);
+            setTimeout(applyStreamingViewCollection.bind(null, true), 450);
         }
         var originalStart = comp.start;
         if (originalStart) {
             comp.start = function () {
                 originalStart.apply(this, arguments);
-                applyStreamingViewCollection();
+                scheduleCollectionApply();
             };
         }
         comp.create = function () {
@@ -1052,12 +1062,12 @@
                     _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
-                    setTimeout(applyStreamingViewCollection, 0);
+                    scheduleCollectionApply();
                 }, function () {
                     _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
-                    setTimeout(applyStreamingViewCollection, 0);
+                    scheduleCollectionApply();
                 });
             } else {
                 var url = object.url;
@@ -1070,12 +1080,12 @@
                     _this.build({ page: 1, results: results, total_pages: totalPages, total_results: totalResults });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
-                    setTimeout(applyStreamingViewCollection, 0);
+                    scheduleCollectionApply();
                 }, function () {
                     _this.build({ page: 1, results: [], total_pages: 1, total_results: 0 });
                     prependViewHeader(_this);
                     _this.activity.loader(false);
-                    setTimeout(applyStreamingViewCollection, 0);
+                    scheduleCollectionApply();
                 });
             }
             return this.render();
