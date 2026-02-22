@@ -38,7 +38,7 @@
         list.sort(function (a, b) { return (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base' }); });
         return list;
     }
-    function showGenreSelect(object, isView) {
+    function showGenreSelect(object, isView, onReturnFocus) {
         var genreTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_genre_label')) || 'Genre';
         var items = [{ title: '— ' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + ' —', value: '', id: null }];
         getGenresSorted().forEach(function (g) { items.push({ title: g.title, value: g.id, id: g.id }); });
@@ -50,7 +50,10 @@
                 if (isView) next.page = 1;
                 Lampa.Activity.replace(next);
             },
-            onBack: function () { Lampa.Controller.toggle('content'); }
+            onBack: function () {
+                Lampa.Controller.toggle('content');
+                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 80);
+            }
         });
     }
 
@@ -79,7 +82,7 @@
         var translate = function (k) { return (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate(k)) || k; };
         return COUNTRY_FILTER_LIST.map(function (c) { return { code: c.code, title: translate(c.titleKey) || c.titleKey }; });
     }
-    function showCountrySelect(object, isView) {
+    function showCountrySelect(object, isView, onReturnFocus) {
         var countryTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_country_label')) || 'Country';
         var items = [{ title: '— ' + ((Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_reset_filters')) || 'Reset') + ' —', value: '', code: null }];
         getCountriesSorted().forEach(function (c) { items.push({ title: c.title, value: c.code, code: c.code }); });
@@ -91,7 +94,10 @@
                 if (isView) next.page = 1;
                 Lampa.Activity.replace(next);
             },
-            onBack: function () { Lampa.Controller.toggle('content'); }
+            onBack: function () {
+                Lampa.Controller.toggle('content');
+                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 80);
+            }
         });
     }
 
@@ -230,7 +236,7 @@
         });
     }
 
-    function showTagCategorySelect(object, isView) {
+    function showTagCategorySelect(object, isView, onReturnFocus) {
         var tagTitle = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
         Lampa.Select.show({
             title: tagTitle,
@@ -246,7 +252,10 @@
                     Lampa.Activity.replace(next);
                 }
             },
-            onBack: function () { Lampa.Controller.toggle('content'); }
+            onBack: function () {
+                Lampa.Controller.toggle('content');
+                if (typeof onReturnFocus === 'function') setTimeout(onReturnFocus, 80);
+            }
         });
     }
 
@@ -771,7 +780,9 @@
         return header;
     }
 
-    function buildStreamingViewHeader(object) {
+    function buildStreamingViewHeader(object, opts) {
+        opts = opts || {};
+        var onReturnFocus = opts.onReturnFocus;
         var header = document.createElement('div');
         header.className = 'streaming-sqr-header streaming-sqr-header--view';
         header.style.cssText = 'display:flex;align-items:center;gap:16px;padding:10px 16px;flex-wrap:nowrap;width:100%;box-sizing:border-box;';
@@ -806,7 +817,7 @@
         genreBtn.setAttribute('tabindex', '0');
         genreBtn.setAttribute('role', 'button');
         genreBtn.innerHTML = ICON_GENRE_SVG + '<span>' + genreBtnText + '</span>';
-        $(genreBtn).on('hover:enter', function () { showGenreSelect(object, true); });
+        $(genreBtn).on('hover:enter', function () { showGenreSelect(object, true, onReturnFocus); });
         header.appendChild(genreBtn);
         var tagLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_tag_label')) || 'Tag';
         var tagTitle = '';
@@ -821,7 +832,7 @@
         tagBtn.setAttribute('tabindex', '0');
         tagBtn.setAttribute('role', 'button');
         tagBtn.innerHTML = ICON_TAG_SVG + '<span>' + tagBtnText + '</span>';
-        $(tagBtn).on('hover:enter', function () { showTagCategorySelect(object, true); });
+        $(tagBtn).on('hover:enter', function () { showTagCategorySelect(object, true, onReturnFocus); });
         header.appendChild(tagBtn);
         var countryLabelBase = (Lampa.Lang && Lampa.Lang.translate && Lampa.Lang.translate('streaming_country_label')) || 'Country';
         var countryTitle = '';
@@ -836,7 +847,7 @@
         countryBtn.setAttribute('tabindex', '0');
         countryBtn.setAttribute('role', 'button');
         countryBtn.innerHTML = ICON_COUNTRY_SVG + '<span>' + countryBtnText + '</span>';
-        $(countryBtn).on('hover:enter', function () { showCountrySelect(object, true); });
+        $(countryBtn).on('hover:enter', function () { showCountrySelect(object, true, onReturnFocus); });
         header.appendChild(countryBtn);
         var rightSpacer = document.createElement('div');
         rightSpacer.style.cssText = 'flex:1 1 0;min-width:12px;';
@@ -1001,7 +1012,7 @@
         function prependViewHeader(_this) {
             var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
             if (!root) return;
-            var headerEl = buildStreamingViewHeader(object);
+            var headerEl = buildStreamingViewHeader(object, { onReturnFocus: applyStreamingViewCollection });
             if (root.prepend) {
                 root.prepend(headerEl);
             } else if (root.insertBefore && root.firstChild) {
