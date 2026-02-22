@@ -647,19 +647,9 @@
         streaming_country_US: { en: 'United States', uk: 'США' },
         streaming_country_GB: { en: 'United Kingdom', uk: 'Велика Британія' },
         streaming_country_EU: { en: 'Europe', uk: 'Європа' },
-        streaming_country_CA: { en: 'Canada', uk: 'Канада' },
-        streaming_country_AU: { en: 'Australia', uk: 'Австралія' },
-        streaming_country_BR: { en: 'Brazil', uk: 'Бразилія' },
-        streaming_country_MX: { en: 'Mexico', uk: 'Мексика' },
-        streaming_country_AR: { en: 'Argentina', uk: 'Аргентина' },
         streaming_country_JP: { en: 'Japan', uk: 'Японія' },
-        streaming_country_TH: { en: 'Thailand', uk: 'Таїланд' },
-        streaming_country_ID: { en: 'Indonesia', uk: 'Індонезія' },
-        streaming_country_ZA: { en: 'South Africa', uk: 'Південна Африка' },
         streaming_country_NZ: { en: 'New Zealand', uk: 'Нова Зеландія' },
-        streaming_country_IN: { en: 'India', uk: 'Індія' },
         streaming_country_CN: { en: 'China', uk: 'Китай' },
-        streaming_country_KR: { en: 'South Korea', uk: 'Південна Корея' }
     });
 
     var WATCH_REGIONS = [
@@ -874,35 +864,6 @@
             comp.create = function () { this.empty(); return this.render(); };
             return comp;
         }
-        var mainHeaderEl = null;
-        var mainRootEl = null;
-        function prependMainHeader(_this) {
-            var root = _this.activity && _this.activity.render ? _this.activity.render() : _this.render();
-            if (!root) return;
-            var headerEl = buildStreamingHeader(object, serviceId, {});
-            if (root.prepend) {
-                root.prepend(headerEl);
-            } else if (root.insertBefore && root.firstChild) {
-                root.insertBefore(headerEl, root.firstChild);
-            } else {
-                root.insertBefore(headerEl, null);
-            }
-            mainHeaderEl = headerEl;
-            mainRootEl = root;
-        }
-        function applyMainCollection(focusHeader) {
-            if (!mainHeaderEl || !mainRootEl || !Lampa.Controller || typeof Lampa.Controller.collectionSet !== 'function') return;
-            var content = mainRootEl.children && mainRootEl.children.length > 1 ? mainRootEl.children[1] : mainRootEl;
-            Lampa.Controller.collectionSet(mainHeaderEl, content);
-            if (typeof Lampa.Controller.collectionFocus === 'function') {
-                Lampa.Controller.collectionFocus(focusHeader === true, mainHeaderEl, content);
-            }
-        }
-        function scheduleMainCollectionApply() {
-            setTimeout(applyMainCollection.bind(null, false), 0);
-            setTimeout(applyMainCollection.bind(null, true), 150);
-            setTimeout(applyMainCollection.bind(null, true), 450);
-        }
         comp.create = function () {
             var mainObject = Object.assign({}, object, { tagKeywordId: null, searchQuery: '' });
             var categories = buildEffectiveCategories(serviceId, mainObject);
@@ -994,9 +955,7 @@
                 var fulldata = buildFullData();
                 if (fulldata.length) {
                     _this.build(fulldata);
-                    prependMainHeader(_this);
                     _this.activity.loader(false);
-                    scheduleMainCollectionApply();
                 } else {
                     _this.empty();
                 }
@@ -1007,23 +966,6 @@
                 staticDone = true;
                 tryBuild();
             };
-            var originalStart = comp.start;
-            if (originalStart) {
-                comp.start = function () {
-                    originalStart.apply(this, arguments);
-                    scheduleMainCollectionApply();
-                    var contentCtrl = Lampa.Controller.enabled && Lampa.Controller.enabled();
-                    if (contentCtrl && contentCtrl.toggle) {
-                        var prevToggle = contentCtrl.toggle;
-                        Lampa.Controller.add('content', Object.assign({}, contentCtrl, {
-                            toggle: function () {
-                                applyMainCollection(true);
-                                if (prevToggle) prevToggle.call(this);
-                            }
-                        }));
-                    }
-                };
-            }
             return this.render();
         };
 
@@ -1086,7 +1028,8 @@
             var content = streamingRootEl.children && streamingRootEl.children.length > 1 ? streamingRootEl.children[1] : streamingRootEl;
             Lampa.Controller.collectionSet(streamingHeaderEl, content);
             if (typeof Lampa.Controller.collectionFocus === 'function') {
-                Lampa.Controller.collectionFocus(focusHeader === true, streamingHeaderEl, content);
+                var focusEl = focusHeader && streamingHeaderEl.querySelector && streamingHeaderEl.querySelector('.selector');
+                Lampa.Controller.collectionFocus(focusEl || focusHeader === true, streamingHeaderEl, content);
             }
         }
         function scheduleCollectionApply() {
@@ -1094,21 +1037,25 @@
             setTimeout(applyStreamingViewCollection.bind(null, true), 150);
             setTimeout(applyStreamingViewCollection.bind(null, true), 450);
         }
+        
         var originalStart = comp.start;
         if (originalStart) {
             comp.start = function () {
                 originalStart.apply(this, arguments);
                 scheduleCollectionApply();
-                var contentCtrl = Lampa.Controller.enabled && Lampa.Controller.enabled();
-                if (contentCtrl && contentCtrl.toggle) {
-                    var prevToggle = contentCtrl.toggle;
-                    Lampa.Controller.add('content', Object.assign({}, contentCtrl, {
-                        toggle: function () {
-                            applyStreamingViewCollection(true);
-                            if (prevToggle) prevToggle.call(this);
-                        }
-                    }));
-                }
+                var self = this;
+                setTimeout(function () {
+                    var contentCtrl = Lampa.Controller.enabled && Lampa.Controller.enabled();
+                    if (contentCtrl && contentCtrl.toggle) {
+                        var prevToggle = contentCtrl.toggle;
+                        Lampa.Controller.add('content', Object.assign({}, contentCtrl, {
+                            toggle: function () {
+                                applyStreamingViewCollection(true);
+                                if (prevToggle) prevToggle.call(self);
+                            }
+                        }));
+                    }
+                }, 50);
             };
         }
         comp.create = function () {
