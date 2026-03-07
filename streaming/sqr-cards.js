@@ -11,6 +11,13 @@
         return;
     }
 
+    window.sqr_cards_debug = window.sqr_cards_debug || false;
+    function log() {
+        if (window.sqr_cards_debug && console && console.log) {
+            console.log.apply(console, ['[SQR Cards]'].concat(Array.prototype.slice.call(arguments)));
+        }
+    }
+
     var YT_API_URL = 'https://www.youtube.com/iframe_api';
     var ytCallbacks = [];
     var ytScriptAdded = false;
@@ -86,9 +93,16 @@
 
     Player.prototype.initYT = function () {
         var self = this;
-        if (this.youtube || typeof YT === 'undefined' || !YT.Player) return;
+        if (this.youtube || typeof YT === 'undefined' || !YT.Player) {
+            log('initYT skip', !!this.youtube, typeof YT, !!YT.Player);
+            return;
+        }
         var el = this.html.find('.cardify-trailer__youtube-iframe')[0];
-        if (!el || !el.ownerDocument || !el.ownerDocument.body.contains(el)) return;
+        if (!el || !el.ownerDocument || !el.ownerDocument.body.contains(el)) {
+            log('initYT: iframe not in DOM');
+            return;
+        }
+        log('initYT creating YT.Player', this.video.id);
         this.youtube = new YT.Player(el, {
             height: window.innerHeight * 2,
             width: window.innerWidth,
@@ -314,7 +328,10 @@
             self.object.activity.render().find('.cardify-preview').remove();
             setTimeout(remove, 300);
         });
-        this.object.activity.render().find('.activity__body').prepend(this.player.render());
+        var container = this.object.activity.render().find('.activity__body');
+        if (!container.length) container = this.object.activity.render().find('.full-start-new') || this.object.activity.render();
+        if (!container.length) container = $('body');
+        container.prepend(this.player.render());
         this.player.initYT();
         this.state.start();
     };
@@ -479,6 +496,7 @@
         } else if (!Lampa.Platform.screen('tv')) {
             console.log('SQR Cards', 'TV recommended');
         }
+        console.log('SQR Cards: loaded. In console set window.sqr_cards_debug = true and open a card to see logs.');
 
         Lampa.Lang.add({
             cardify_enable_sound: { ru: 'Включить звук', en: 'Enable sound', uk: 'Увімкнути звук', be: 'Уключыць гук', zh: '启用声音', pt: 'Ativar som', bg: 'Включване на звук' },
@@ -564,47 +582,93 @@
             field: { name: 'Показывать рейтинг' }
         });
 
-        Lampa.Listener.follow('full', function (e) {
-            if (e.type !== 'complete') return;
-            applyCardifyLayout(e);
+        function runTrailerFlow(e) {
+            log('runTrailerFlow', e.type, e.object ? 'has object' : 'no object', e.data ? 'has data' : 'no data');
+            try {
+                applyCardifyLayout(e);
+            } catch (err) {
+                log('applyCardifyLayout error', err);
+            }
 
             var runTrailers = false;
             try {
                 var st = Lampa.Storage;
                 runTrailers = (st.field && st.field('cardify_run_trailers')) || (st.get && st.get('cardify_run_trailers'));
             } catch (err) {}
-
+            log('runTrailers setting', runTrailers);
             if (!runTrailers) return;
 
+            var obj = e.object || {};
+            var card = obj.card || obj;
+
             function tryStartTrailer(video) {
-                if (!video) return;
+                log('tryStartTrailer', video ? video.id : 'no video');
+                if (!video || !video.id) return;
                 loadYouTubeIframeAPI(function () {
+                    log('YT API ready');
+                    if (obj.activity && obj.activity.trailer_ready) {
+                        log('trailer_ready already set, skip');
+                        return;
+                    }
                     var appVer = (Lampa.Manifest && Lampa.Manifest.app_digital) ? Lampa.Manifest.app_digital : 0;
                     if (appVer >= 220) {
-                        if (Lampa.Activity.active().activity === e.object.activity) {
-                            new Trailer(e.object, video);
+                        if (Lampa.Activity.active() && Lampa.Activity.active().activity === obj.activity) {
+                            new Trailer(obj, video);
+                            log('Trailer started (active)');
                         } else {
                             var follow = function (a) {
-                                if (a.type === 'start' && a.object.activity === e.object.activity && !e.object.activity.trailer_ready) {
+                                if (a.type === 'start' && a.object.activity === obj.activity && !obj.activity.trailer_ready) {
                                     Lampa.Listener.remove('activity', follow);
-                                    new Trailer(e.object, video);
+                                    new Trailer(obj, video);
+                                    log('Trailer started (activity start)');
                                 }
                             };
                             Lampa.Listener.follow('activity', follow);
                         }
                     } else {
-                        new Trailer(e.object, video);
+                        new Trailer(obj, video);
+                        log('Trailer started (no appVer check)');
                     }
                 });
             }
 
-            // Спочатку берімо перший трейлер із даних Lampa (те, що показує сама Лампа)
             var videoFromLampa = getFirstTrailerFromLampa(e);
+            log('videoFromLampa', videoFromLampa ? videoFromLampa.id : null);
             if (videoFromLampa) {
                 tryStartTrailer(videoFromLampa);
-            } else if (e.object && e.object.card) {
-                fetchVideosFromTMDB(e.object.card, tryStartTrailer);
+            } else if (card && card.id) {
+                log('fetching from TMDB', card.id, card.type);
+                fetchVideosFromTMDB(card, tryStartTrailer);
+            } else {
+                log('no video and no card.id, skip');
             }
+        }
+
+        Lampa.Listener.follow('full', function (e) {
+            log('full event', e.type, e);
+            if (e.type === 'complete') {
+                runTrailerFlow(e);
+                return;
+            }
+        });
+
+        Lampa.Listener.follow('activity', function (e) {
+            if (e.type !== 'start') return;
+            var act = e.object && e.object.activity;
+            if (!act || !act.render) return;
+            var $r = act.render();
+            if (!$r || !$r.find) return;
+            if (!$r.find('.full-start__background').length && !$r.find('.full-start-new').length && !$r.find('.cardify').length) return;
+            if (act.trailer_ready) return;
+            var card = (e.object && e.object.card) || (e.object && e.object.id && e.object) || (act.object && (act.object.card || act.object));
+            if (!card || !card.id) return;
+            log('activity start (full-start-like)', card.id);
+            var fakeE = {
+                type: 'complete',
+                object: { activity: act, card: card },
+                data: e.data || (e.object && e.object.data) || (card.videos && { videos: card.videos }) || {}
+            };
+            runTrailerFlow(fakeE);
         });
     }
 
