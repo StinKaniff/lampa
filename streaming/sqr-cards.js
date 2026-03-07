@@ -317,32 +317,69 @@
         if (this.player) this.player.destroy();
     };
 
-    // —— Вибір трейлера з data.videos.results (формат TMDB) ——
-    function pickVideoFromData(data) {
-        if (!data || !data.videos || !data.videos.results || !data.videos.results.length) return null;
-        var items = data.videos.results
-            .filter(function (el) { return el.site === 'YouTube' && el.key; })
-            .map(function (el) {
-                return {
-                    title: Lampa.Utils.shortText(el.name, 50),
-                    id: el.key,
-                    code: el.iso_639_1 || '',
-                    time: new Date(el.published_at || 0).getTime(),
-                    url: 'https://www.youtube.com/watch?v=' + el.key,
-                    img: 'https://img.youtube.com/vi/' + el.key + '/default.jpg'
-                };
-            });
-        if (!items.length) return null;
-        items.sort(function (a, b) { return a.time > b.time ? -1 : a.time < b.time ? 1 : 0; });
-        var tmdbLang = (Lampa.Storage.get && Lampa.Storage.get('tmdb_lang')) || (Lampa.Storage.field && Lampa.Storage.field('tmdb_lang')) || 'uk';
-        var myLang = items.filter(function (n) { return n.code === tmdbLang; });
-        var enLang = items.filter(function (n) { return n.code === 'en' && myLang.indexOf(n) === -1; });
-        var list = myLang.length ? myLang : [];
-        list = list.concat(enLang);
-        return list.length ? list[0] : items[0];
+    // —— Нормалізація одного відео в формат { id, img, ... } для програвача ——
+    function normalizeVideo(el) {
+        var key = el.key || el.id;
+        if (!key && el.url) {
+            var match = el.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (match) key = match[1];
+        }
+        if (!key) return null;
+        return {
+            title: (el.name && Lampa.Utils && Lampa.Utils.shortText ? Lampa.Utils.shortText(el.name, 50) : el.name) || '',
+            id: key,
+            url: 'https://www.youtube.com/watch?v=' + key,
+            img: 'https://img.youtube.com/vi/' + key + '/default.jpg'
+        };
     }
 
-    // —— Завантаження трейлерів з TMDB API ——
+    // —— Перший YouTube-трейлер з масиву (формат TMDB: { key, site, name, ... }) ——
+    function firstYouTubeFromResults(results) {
+        if (!results || !results.length) return null;
+        for (var i = 0; i < results.length; i++) {
+            var el = results[i];
+            if ((el.site === 'YouTube' || !el.site) && (el.key || el.id)) {
+                var v = normalizeVideo(el);
+                if (v) return v;
+            }
+        }
+        return null;
+    }
+
+    // —— Взяти перший трейлер із даних Lampa (e.object, e.data) ——
+    function getFirstTrailerFromLampa(e) {
+        var data = e.data || {};
+        var object = e.object || {};
+        var card = object.card || object;
+
+        var results = null;
+        if (data.videos && data.videos.results && data.videos.results.length)
+            results = data.videos.results;
+        else if (data.movie && data.movie.videos && data.movie.videos.results && data.movie.videos.results.length)
+            results = data.movie.videos.results;
+        else if (data.tv && data.tv.videos && data.tv.videos.results && data.tv.videos.results.length)
+            results = data.tv.videos.results;
+        else if (card && card.videos && card.videos.results && card.videos.results.length)
+            results = card.videos.results;
+        else if (object.videos && object.videos.results && object.videos.results.length)
+            results = object.videos.results;
+
+        if (results && results.length) return firstYouTubeFromResults(results);
+
+        // Якщо в картці/об'єкті є готове посилання на трейлер (як у самій Лампи)
+        var trailer = (card && card.trailer) || (object.trailer) || (data.trailer);
+        if (trailer) {
+            if (typeof trailer === 'string') {
+                var m = trailer.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                if (m) return normalizeVideo({ key: m[1] });
+            }
+            if (trailer.key) return normalizeVideo(trailer);
+            if (trailer.id) return normalizeVideo(trailer);
+        }
+        return null;
+    }
+
+    // —— Завантаження трейлерів з TMDB API; повертає перший у списку ——
     function fetchVideosFromTMDB(card, callback) {
         if (!card || !card.id || !Lampa.TMDB || !Lampa.TMDB.api || !Lampa.TMDB.key()) {
             if (typeof callback === 'function') callback(null);
@@ -355,8 +392,8 @@
         fetch(apiUrl)
             .then(function (r) { return r.json(); })
             .then(function (json) {
-                var data = { videos: { results: (json && json.results) ? json.results : [] } };
-                var video = pickVideoFromData(data);
+                var results = (json && json.results) ? json.results : [];
+                var video = firstYouTubeFromResults(results);
                 if (typeof callback === 'function') callback(video);
             })
             .catch(function () {
@@ -553,9 +590,10 @@
                 });
             }
 
-            var videoFromData = pickVideoFromData(e.data);
-            if (videoFromData) {
-                tryStartTrailer(videoFromData);
+            // Спочатку берімо перший трейлер із даних Lampa (те, що показує сама Лампа)
+            var videoFromLampa = getFirstTrailerFromLampa(e);
+            if (videoFromLampa) {
+                tryStartTrailer(videoFromLampa);
             } else if (e.object && e.object.card) {
                 fetchVideosFromTMDB(e.object.card, tryStartTrailer);
             }
