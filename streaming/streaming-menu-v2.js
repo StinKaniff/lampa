@@ -66,13 +66,15 @@
         { id: 10, titleKey: 'streaming_scifi_fantasy', section: 'genre', genres: '878,14,12' },
         { id: 11, titleKey: 'streaming_action_thrillers', section: 'genre', genres: '28,53,80' },
         { id: 12, titleKey: 'streaming_comedy', section: 'genre', genres: '35' },
-        { id: 13, titleKey: 'streaming_animation', section: 'genre', genres: '16' },
-        { id: 14, titleKey: 'streaming_nonfiction', section: 'genre', genres: '36,99' },
-        { id: 15, titleKey: 'streaming_drama', section: 'genre', genres: '18' },
-        { id: 16, titleKey: 'streaming_horror', section: 'genre', genres: '27' },
-        { id: 17, titleKey: 'streaming_romance', section: 'genre', genres: '10749' },
-        { id: 18, titleKey: 'streaming_mystery', section: 'genre', genres: '9648' },
-        { id: 19, titleKey: 'streaming_discovery', section: 'genre', genres: '99' }
+        { id: 13, titleKey: 'streaming_crime', section: 'genre', genres: '80' },
+        { id: 14, titleKey: 'streaming_thriller', section: 'genre', keywords: '9950' },
+        { id: 15, titleKey: 'streaming_documentary', section: 'genre', genres: '99' },
+        { id: 16, titleKey: 'streaming_animation', section: 'genre', genres: '16' },
+        { id: 17, titleKey: 'streaming_drama', section: 'genre', genres: '18' },
+        { id: 18, titleKey: 'streaming_horror', section: 'genre', keywords: '8087' },
+        { id: 19, titleKey: 'streaming_romance', section: 'genre', keywords: '9840' },
+        { id: 20, titleKey: 'streaming_mystery', section: 'genre', genres: '9648' },
+        { id: 21, titleKey: 'streaming_family', section: 'genre', genres: '10751' }
     ];
     var CATEGORY_TEMPLATE_BRAND = [
         { id: 1, titleKey: 'streaming_trending', section: 'trending' },
@@ -299,7 +301,9 @@
         streaming_exclusive_5: { en: 'Exclusive 5', uk: 'Ексклюзив 5' },
         streaming_scifi_fantasy: { en: 'Sci-Fi & Fantasy', uk: 'Наукова фантастика та Фентезі' },
         streaming_action_thrillers: { en: 'Action & Thrillers', uk: 'Бойовики та Трилери' },
-        streaming_nonfiction: { en: 'Non-Fiction', uk: 'Нон-фікшен' },
+        streaming_crime: { en: 'Crime', uk: 'Кримінал' },
+        streaming_thriller: { en: 'Thriller', uk: 'Трилер' },
+        streaming_documentary: { en: 'Documentary', uk: 'Документальні' },
         streaming_animation: { en: 'Animation', uk: 'Анімація' },
         streaming_comedy: { en: 'Comedy', uk: 'Комедії' },
         streaming_region_label: { en: 'Watch region', uk: 'Регіон перегляду' },
@@ -326,7 +330,7 @@
         streaming_horror: { en: 'Horror', uk: 'Жахи' },
         streaming_romance: { en: 'Romance', uk: 'Мелодрама' },
         streaming_mystery: { en: 'Mystery & Detective', uk: 'Детектив та Таємниця' },
-        streaming_discovery: { en: 'Nature, Space & Wildlife', uk: 'Природа, космос та тварини' },
+        streaming_family: { en: 'Family', uk: 'Сімейні' },
         streaming_search_results: { en: 'Search results', uk: 'Результати пошуку' },
     });
 
