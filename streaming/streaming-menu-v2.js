@@ -64,7 +64,6 @@
         { id: 8, titleKey: 'streaming_exclusive_4', section: 'exclusive' },
         { id: 9, titleKey: 'streaming_exclusive_5', section: 'exclusive' },
         { id: 10, titleKey: 'streaming_scifi_fantasy', section: 'genre', genres: '878,14,12' },
-        { id: 11, titleKey: 'streaming_action_thrillers', section: 'genre', genres: '28,53,80' },
         { id: 12, titleKey: 'streaming_comedy', section: 'genre', genres: '35' },
         { id: 13, titleKey: 'streaming_crime', section: 'genre', genres: '80' },
         { id: 14, titleKey: 'streaming_thriller', section: 'genre', keywords: '9950' },
@@ -85,6 +84,8 @@
     // Тільки тренді + ексклюзиви, без нових серіалів/фільмів (для NatGeo, Discovery)
     var CATEGORY_TEMPLATE_DOC = [
         { id: 1, titleKey: 'streaming_trending', section: 'trending' },
+        { id: 2, titleKey: 'streaming_new_series', section: 'new_series' },
+        { id: 3, titleKey: 'streaming_new_movies', section: 'new_movies' },
         { id: 5, titleKey: 'streaming_exclusive_1', section: 'exclusive' },
         { id: 6, titleKey: 'streaming_exclusive_2', section: 'exclusive' },
         { id: 7, titleKey: 'streaming_exclusive_3', section: 'exclusive' }
@@ -237,7 +238,6 @@
                     { url: 'discover/tv', params: { with_networks: '4330', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                     { url: 'discover/movie', params: { with_companies: '4', sort_by: 'popularity.desc', 'vote_count.gte': '10' } }
                 ]},
-                { titleKey: 'streaming_yellowstone', url: 'discover/tv', params: { with_networks: '318|4330', with_genres: '37,18', sort_by: 'popularity.desc', 'vote_count.gte': '10' } },
                 { titleKey: 'streaming_paramount_blockbusters', url: 'discover/movie', params: { with_companies: '4', sort_by: 'popularity.desc', 'vote_count.gte': '10', 'vote_average.gte': '6.5' } }
             ]
         },
